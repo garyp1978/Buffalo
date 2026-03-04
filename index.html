@@ -458,7 +458,7 @@
     }
     .wheelPointer{
       position:absolute;
-      top: 0.08rem;
+      top: 0.15rem;
       left: 50%;
       transform: translateX(-50%);
       width: 0; height: 0;
@@ -466,27 +466,20 @@
       border-right: 18px solid transparent;
       border-top: 28px solid #111827;
       filter: drop-shadow(0 0.35rem 0.6rem rgba(0,0,0,0.25));
-      z-index:3;
+      z-index:2;
     }
-
-    /* Animated canvas wheel */
-    .wheelWrap{
+    .wheel{
       width: min(70vw, 420px);
       height: min(70vw, 420px);
       border-radius: 999px;
+      border: 10px solid rgba(17,24,39,0.10);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7), 0 1.2rem 2.4rem rgba(0,0,0,0.25);
       position:relative;
       transform: rotate(0deg);
       transition: transform 3.8s cubic-bezier(0.14, 0.94, 0.2, 1);
       overflow:hidden;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65), 0 1.2rem 2.4rem rgba(0,0,0,0.25);
-      border: 10px solid rgba(17,24,39,0.10);
-      background: #f3f4f6;
+      background: conic-gradient(from 0deg, #93c5fd, #86efac, #fca5a5, #fde68a, #c4b5fd, #fda4af, #67e8f9, #86efac);
     }
-    #wheelCanvas{
-      width:100%; height:100%;
-      display:block;
-    }
-
     .wheelCenter{
       position:absolute;
       left:50%; top:50%;
@@ -504,9 +497,7 @@
       border: 2px solid rgba(255,255,255,0.25);
       pointer-events:none;
       font-size: calc(0.8rem * var(--ui-scale));
-      z-index:2;
     }
-
     .wheelActions{ display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-top:0.7rem; }
     .wheelBtn{
       border:none; border-radius:999px; cursor:pointer;
@@ -599,9 +590,7 @@
 
       <div class="wheelStage">
         <div class="wheelPointer"></div>
-
-        <div class="wheelWrap" id="wheelWrap" aria-label="Challenge wheel">
-          <canvas id="wheelCanvas" width="900" height="900"></canvas>
+        <div class="wheel" id="wheel">
           <div class="wheelCenter">SPIN</div>
         </div>
       </div>
@@ -790,7 +779,7 @@
   <div id="completeFlash">DONE!</div>
 
   <script>
-    const STORAGE_KEY = "buffaloGameSettings_v21_canvasWheel";
+    const STORAGE_KEY = "buffaloGameSettings_v20_wheel_rounds_ppTypes";
 
     function loadSavedSettings() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
     function saveSettingsToStorage(obj) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {} }
@@ -836,6 +825,7 @@
     let powerPlayTypeCounts = {}; // action string -> count
 
     // 10 second warning system
+    let warningActive = false;
     let lastWarnSecond = null;
 
     // Wheel state
@@ -843,6 +833,7 @@
     let wheelRotationDeg = 0;
     let pendingPowerTarget = null;
     let pendingPowerAction = null;
+    let pendingPowerIsAuto = false;
 
     // Session tracking for heatmap + export
     let sessionStartedAt = null;
@@ -856,12 +847,8 @@
     let historyAutoHideId = null;
 
     let wakeLock = null, keepAwakeEnabled = false;
-    let persistTimer = null;
 
-    // Canvas wheel references
-    const WHEEL_PALETTE = ['#93c5fd','#86efac','#fca5a5','#fde68a','#c4b5fd','#fda4af','#67e8f9','#a7f3d0','#fecaca','#ddd6fe','#bae6fd','#bbf7d0'];
-    let wheelCanvas = null;
-    let wheelCtx = null;
+    let persistTimer = null;
 
     function escapeHtml(str) {
       return String(str)
@@ -872,7 +859,7 @@
         .replaceAll("'","&#039;");
     }
     function normalizeList(text) {
-      const lines = String(text || "").split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+      const lines = String(text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
       const seen = new Set(), out = [];
       for (const n of lines) { const k = n.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(n); } }
       return out;
@@ -1141,105 +1128,6 @@
       if (el) el.innerHTML = renderTeamBreakdownHtml();
     }
 
-    function initWheelCanvas(){
-      wheelCanvas = document.getElementById('wheelCanvas');
-      if (!wheelCanvas) return;
-      wheelCtx = wheelCanvas.getContext('2d');
-      drawWheel();
-    }
-
-    function drawWheel(){
-      if (!wheelCanvas || !wheelCtx) return;
-
-      const ctx = wheelCtx;
-      const w = wheelCanvas.width;
-      const h = wheelCanvas.height;
-      const cx = w/2, cy = h/2;
-      const radius = Math.min(w,h) * 0.48;
-
-      ctx.clearRect(0,0,w,h);
-
-      // Outer rim subtle gradient ring
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx,cy,radius*1.04,0,Math.PI*2);
-      ctx.arc(cx,cy,radius*0.92,0,Math.PI*2,true);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(17,24,39,0.06)';
-      ctx.fill();
-      ctx.restore();
-
-      const n = Math.max(1, powerPlays.length);
-      const seg = (Math.PI*2)/n;
-      let start = -Math.PI/2; // start at top so pointer aligns nicely
-
-      // Segment drawing
-      for (let i=0;i<n;i++){
-        const end = start + seg;
-        ctx.beginPath();
-        ctx.moveTo(cx,cy);
-        ctx.arc(cx,cy,radius,start,end);
-        ctx.closePath();
-        ctx.fillStyle = WHEEL_PALETTE[i % WHEEL_PALETTE.length];
-        ctx.fill();
-
-        // Segment border
-        ctx.strokeStyle = 'rgba(17,24,39,0.14)';
-        ctx.lineWidth = 6;
-        ctx.stroke();
-
-        start = end;
-      }
-
-      // Inner highlight ring
-      ctx.beginPath();
-      ctx.arc(cx,cy,radius*0.86,0,Math.PI*2);
-      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-      ctx.lineWidth = 10;
-      ctx.stroke();
-
-      // Labels
-      ctx.save();
-      ctx.translate(cx,cy);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const maxChars = 18; // keep readable
-      const fontSize = Math.max(26, Math.floor(radius*0.085));
-      ctx.font = `950 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-
-      for (let i=0;i<n;i++){
-        const angle = (-Math.PI/2) + (i*seg) + (seg/2); // center
-        ctx.save();
-        ctx.rotate(angle);
-
-        // text shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
-        const label = String(powerPlays[i] || '').trim();
-        const shortLabel = label.length > maxChars ? (label.slice(0, maxChars-1) + '…') : label;
-
-        // draw on a radial line
-        ctx.translate(0, -radius*0.63);
-
-        // Outline effect
-        ctx.lineWidth = 10;
-        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-        ctx.strokeText(shortLabel, 0, 0);
-
-        ctx.fillStyle = '#111827';
-        ctx.fillText(shortLabel, 0, 0);
-
-        ctx.restore();
-      }
-      ctx.restore();
-
-      // Small center dot (under the CSS center cap)
-      ctx.beginPath();
-      ctx.arc(cx,cy,radius*0.06,0,Math.PI*2);
-      ctx.fillStyle = 'rgba(17,24,39,0.22)';
-      ctx.fill();
-    }
-
     function rebuildSystems(keepCounts = true) {
       const oldPower = keepCounts ? { ...powerCounts } : {};
       const oldDrinks = keepCounts ? { ...drinkCounts } : {};
@@ -1458,11 +1346,12 @@
 
       // Visual warning + countdown in last 10 seconds
       if (totalSec > 0 && totalSec <= 10) {
+        warningActive = true;
         handPanel.classList.add('pulse');
         t.textContent = `SWITCHING IN ${totalSec}s`;
 
         if (enableMainTenSecondSiren && audioUnlocked) {
-          // Siren at 10s, ticks 9..1
+          // Play siren once at 10s, then ticks each second 9..1
           if (totalSec === 10 && lastWarnSecond !== 10) {
             playTenSecondSiren();
             haptic([120, 60, 120]);
@@ -1473,6 +1362,7 @@
         }
         lastWarnSecond = totalSec;
       } else {
+        warningActive = false;
         lastWarnSecond = null;
         handPanel.classList.remove('pulse');
         t.textContent = 'Running';
@@ -1492,6 +1382,7 @@
       const ms = minutes * 60 * 1000;
 
       nextChangeTime = Date.now() + ms;
+      warningActive = false;
       lastWarnSecond = null;
 
       updateTimerText();
@@ -1500,6 +1391,7 @@
       timerId = setTimeout(() => {
         if (isPaused) return;
 
+        // Auto hand switch = a "round"
         roundCount += 1;
 
         isRight = !isRight;
@@ -1515,6 +1407,16 @@
       }, ms);
     }
 
+    function schedulePowerPlay() {
+      if (isPaused) return;
+      if (powerTimerId) clearTimeout(powerTimerId);
+
+      const minutes = powerMinMinutes + Math.random() * (powerMaxMinutes - powerMinMinutes);
+      const ms = minutes * 60 * 1000;
+
+      powerTimerId = setTimeout(() => triggerPowerPlayViaWheel(true), ms);
+    }
+
     // ====== WHEEL ======
     function setWheelVisible(v){
       document.getElementById('wheelOverlay').classList.toggle('hidden', !v);
@@ -1523,9 +1425,18 @@
     }
 
     function updateWheelVisual(){
-      const wrap = document.getElementById('wheelWrap');
-      wrap.style.transform = `rotate(${wheelRotationDeg}deg)`;
-      drawWheel();
+      const wheel = document.getElementById('wheel');
+      const n = Math.max(1, powerPlays.length);
+
+      // Nice spread of colors for any count (cycle through palette)
+      const palette = ['#93c5fd','#86efac','#fca5a5','#fde68a','#c4b5fd','#fda4af','#67e8f9','#a7f3d0','#fecaca','#ddd6fe'];
+      const stops = [];
+      for (let i = 0; i < n; i++){
+        const c = palette[i % palette.length];
+        stops.push(`${c} ${(i*100/n).toFixed(3)}% ${( (i+1)*100/n ).toFixed(3)}%`);
+      }
+      wheel.style.background = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+      wheel.style.transform = `rotate(${wheelRotationDeg}deg)`;
       document.getElementById('wheelResult').textContent = '';
     }
 
@@ -1536,20 +1447,28 @@
 
     function computeWheelLanding(actionIndex){
       const n = Math.max(1, powerPlays.length);
+
+      // Pointer is at top (0 degrees). In CSS, rotate wheel clockwise increases degrees.
+      // We want chosen segment to land under pointer.
+      // Segment center angle (in wheel coordinates, starting at 0deg) is:
       const segSize = 360 / n;
       const segCenter = (actionIndex * segSize) + (segSize / 2);
 
+      // To bring segCenter to 0deg at pointer, rotate wheel by -(segCenter) plus full spins.
       const spins = 6 + Math.floor(Math.random() * 4); // 6-9 spins
-      // pointer is at top; we started wheel labels at top too.
-      // bring segCenter to 0 (top) by rotating -segCenter
-      return (spins * 360) - segCenter;
+      const targetRotation = (spins * 360) - segCenter;
+
+      return targetRotation;
     }
 
     function openWheelForTarget(target, autoSpin){
       pendingPowerTarget = target;
+      pendingPowerIsAuto = !!autoSpin;
+
       setWheelVisible(true);
       updateWheelVisual();
 
+      // Auto spin for timed power plays, manual spin for button
       if (autoSpin){
         setTimeout(() => spinWheel(), 250);
       }
@@ -1569,12 +1488,14 @@
       const actionIndex = Math.floor(Math.random() * n);
       const action = powerPlays[actionIndex];
 
+      // Compute rotation and animate
       const landing = computeWheelLanding(actionIndex);
       wheelRotationDeg = wheelRotationDeg + landing;
 
-      const wrap = document.getElementById('wheelWrap');
-      wrap.style.transform = `rotate(${wheelRotationDeg}deg)`;
+      const wheel = document.getElementById('wheel');
+      wheel.style.transform = `rotate(${wheelRotationDeg}deg)`;
 
+      // A little sound + haptic at spin start
       if (audioUnlocked) playPowerSound();
       haptic([80, 50, 80]);
 
@@ -1585,6 +1506,7 @@
         pendingPowerAction = action;
         document.getElementById('wheelResult').textContent = `Selected: ${action}`;
 
+        // Short pause then show the actual power play popup
         setTimeout(() => {
           if (!pendingPowerTarget || !pendingPowerAction) return;
           setWheelVisible(false);
@@ -1595,18 +1517,8 @@
       }, 3900);
     }
 
-    // ====== POWER PLAY POPUP ======
+    // ====== POWER PLAY POPUP (now takes target + action from wheel) ======
     let powerTimerId = null;
-
-    function schedulePowerPlay() {
-      if (isPaused) return;
-      if (powerTimerId) clearTimeout(powerTimerId);
-
-      const minutes = powerMinMinutes + Math.random() * (powerMaxMinutes - powerMinMinutes);
-      const ms = minutes * 60 * 1000;
-
-      powerTimerId = setTimeout(() => triggerPowerPlayViaWheel(true), ms);
-    }
 
     function pickPowerAccent(actionText){
       const a = String(actionText || '').toLowerCase();
@@ -1677,6 +1589,7 @@
       if (isPaused) return;
       if (!gameStarted) startGame();
 
+      // If already showing something, skip
       if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
       if (!document.getElementById('wheelOverlay').classList.contains('hidden')) return;
 
@@ -2000,7 +1913,7 @@
 
       if (!sessionStartedAt){
         lines.push('No session has started yet.');
-        return lines.join('\\n');
+        return lines.join('\n');
       }
 
       const started = new Date(sessionStartedAt);
@@ -2051,7 +1964,7 @@
         lines.push('');
       }
 
-      return lines.join('\\n');
+      return lines.join('\n');
     }
 
     async function copyToClipboard(text){
@@ -2080,6 +1993,7 @@
 
     async function shareSession(){
       const text = buildSessionExportText();
+      // Web Share API (works best in Safari)
       try{
         if (navigator.share){
           await navigator.share({ title: 'Buffalo Session Summary', text });
@@ -2088,6 +2002,7 @@
           return;
         }
       } catch (e) {
+        // If user cancels share, don't treat as error
         document.getElementById('exportHint').textContent = 'Share cancelled.';
         logEvent('share_session', 'Cancelled', { ok:false });
         return;
@@ -2146,7 +2061,7 @@
       teamNames = generated;
       teamMap = map;
 
-      document.getElementById('teamsText').value = generated.join('\\n');
+      document.getElementById('teamsText').value = generated.join('\n');
       teamsMode = true;
       setTeamsUI();
       rebuildSystems(true);
@@ -2156,13 +2071,13 @@
     }
 
     function openSettings() {
-      document.getElementById('playersText').value = playerNames.join('\\n');
-      document.getElementById('teamsText').value = teamNames.join('\\n');
+      document.getElementById('playersText').value = playerNames.join('\n');
+      document.getElementById('teamsText').value = teamNames.join('\n');
       document.getElementById('teamsModeToggle').checked = teamsMode;
 
       document.getElementById('teamDisplayCombinedToggle').checked = teamRowShowsCombined;
 
-      document.getElementById('powerPlaysText').value = powerPlays.join('\\n');
+      document.getElementById('powerPlaysText').value = powerPlays.join('\n');
 
       document.getElementById('mainMinInput').value = mainMinMinutes;
       document.getElementById('mainMaxInput').value = mainMaxMinutes;
@@ -2332,6 +2247,7 @@
       if (powerTimerId) clearTimeout(powerTimerId);
       timerId = null; powerTimerId = null; nextChangeTime = null;
 
+      warningActive = false;
       lastWarnSecond = null;
 
       if (countdownIntervalId) { clearInterval(countdownIntervalId); countdownIntervalId = null; }
@@ -2459,6 +2375,8 @@
       if (saved.drinkCounts && typeof saved.drinkCounts === 'object') drinkCounts = saved.drinkCounts;
       if (saved.teamDrinkCounts && typeof saved.teamDrinkCounts === 'object') teamDrinkCounts = saved.teamDrinkCounts;
 
+      if (saved.icons && typeof saved.icons === 'object') icons = saved.icons;
+
       if (Number.isFinite(saved.roundCount)) roundCount = saved.roundCount;
       if (saved.powerPlayTypeCounts && typeof saved.powerPlayTypeCounts === 'object') powerPlayTypeCounts = saved.powerPlayTypeCounts;
 
@@ -2485,6 +2403,7 @@
     if (!powerPlayTypeCounts || typeof powerPlayTypeCounts !== 'object') powerPlayTypeCounts = {};
 
     if (!icons || typeof icons !== 'object') icons = {};
+
     if (teamsMode && (!teamMap || typeof teamMap !== 'object' || !Object.keys(teamMap).length)) {
       const map = {};
       const buckets = Array.from({length: teamNames.length || 1}, () => []);
@@ -2501,10 +2420,6 @@
     setStatus('READY');
     updateTimerText();
     addHistory('Ready');
-
-    // init wheel canvas after DOM loaded
-    initWheelCanvas();
-    updateWheelVisual();
   </script>
 </body>
 </html>
