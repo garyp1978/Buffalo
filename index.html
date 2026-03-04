@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
+<html style="--dim-opacity: 0;"><head>
+  <meta charset="UTF-8">
   <title>Buffalo Drink Hand Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <style>
     :root{ --ui-scale: 1; --dim-opacity: 0; }
 
@@ -92,13 +90,7 @@
     #handEmoji{ font-size: calc(12vw * var(--ui-scale)); margin-bottom:0.5rem; position:relative; z-index:1; }
     #handText{ font-size: calc(7vw * var(--ui-scale)); font-weight:950; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem; position:relative; z-index:1; }
     #drinkHint{ font-size: calc(4vw * var(--ui-scale)); opacity:0.92; position:relative; z-index:1; }
-    #timerText{
-      font-size: calc(4vw * var(--ui-scale));
-      opacity:0.9; margin-top:0.9rem; min-height:1.2em;
-      text-shadow:0 0.2rem 0.7rem rgba(0,0,0,0.8);
-      font-weight: 900;
-      letter-spacing: 0.06em;
-    }
+    #timerText{ font-size: calc(4vw * var(--ui-scale)); opacity:0.85; margin-top:0.9rem; min-height:1.2em; text-shadow:0 0.2rem 0.7rem rgba(0,0,0,0.8); }
     #hintLine{ margin-top:0.35rem; font-size: calc(3vw * var(--ui-scale)); opacity:0.75; }
 
     @keyframes pulseGlow {
@@ -419,191 +411,12 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
-
-    /* Challenge Wheel */
-    #wheelOverlay{
-      position:fixed; inset:0; background:rgba(0,0,0,0.78);
-      display:flex; align-items:center; justify-content:center;
-      z-index:45;
-    }
-    #wheelOverlay.hidden{ display:none; }
-    .wheelBox{
-      background:#fff; color:#111827;
-      width:min(92vw, 720px);
-      border-radius:1.4rem;
-      box-shadow:0 1.5rem 3rem rgba(0,0,0,0.6);
-      padding: 1.2rem 1.2rem 1.1rem;
-      box-sizing:border-box;
-      text-align:center;
-      position:relative;
-      overflow:hidden;
-      border:3px solid rgba(0,0,0,0.08);
-    }
-    .wheelTop{
-      display:flex; align-items:center; justify-content:space-between; gap:0.6rem;
-      margin-bottom:0.7rem;
-    }
-    .wheelTopTitle{
-      font-weight:950; letter-spacing:0.12em; text-transform:uppercase;
-      font-size: calc(1.05rem * var(--ui-scale));
-    }
-    .wheelSub{
-      opacity:0.75; font-weight:800; font-size: calc(0.92rem * var(--ui-scale));
-      margin: 0.1rem 0 0.7rem;
-    }
-    .wheelStage{
-      display:flex; align-items:center; justify-content:center;
-      position:relative;
-      padding: 0.6rem 0 0.8rem;
-    }
-    .wheelPointer{
-      position:absolute;
-      top: 0.08rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-top: 28px solid #111827;
-      filter: drop-shadow(0 0.35rem 0.6rem rgba(0,0,0,0.25));
-      z-index:3;
-    }
-
-    /* Animated canvas wheel */
-    .wheelWrap{
-      width: min(70vw, 420px);
-      height: min(70vw, 420px);
-      border-radius: 999px;
-      position:relative;
-      transform: rotate(0deg);
-      transition: transform 3.8s cubic-bezier(0.14, 0.94, 0.2, 1);
-      overflow:hidden;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65), 0 1.2rem 2.4rem rgba(0,0,0,0.25);
-      border: 10px solid rgba(17,24,39,0.10);
-      background: #f3f4f6;
-    }
-    #wheelCanvas{
-      width:100%; height:100%;
-      display:block;
-    }
-
-    .wheelCenter{
-      position:absolute;
-      left:50%; top:50%;
-      transform: translate(-50%,-50%);
-      width: 26%;
-      height: 26%;
-      border-radius: 999px;
-      background:#111827;
-      color:#fff;
-      display:flex; align-items:center; justify-content:center;
-      font-weight:950;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      box-shadow:0 0.8rem 1.4rem rgba(0,0,0,0.35);
-      border: 2px solid rgba(255,255,255,0.25);
-      pointer-events:none;
-      font-size: calc(0.8rem * var(--ui-scale));
-      z-index:2;
-    }
-
-    .wheelActions{ display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-top:0.7rem; }
-    .wheelBtn{
-      border:none; border-radius:999px; cursor:pointer;
-      padding:0.65rem 1.0rem;
-      font-weight:950;
-      box-shadow:0 0.55rem 1.3rem rgba(0,0,0,0.25);
-      font-size: calc(1.0rem * var(--ui-scale));
-    }
-    .wheelBtn.spin{ background:#16a34a; color:#fff; }
-    .wheelBtn.cancel{ background:#e5e7eb; color:#111827; }
-    .wheelResult{
-      margin-top: 0.6rem;
-      font-weight:950;
-      font-size: calc(1.05rem * var(--ui-scale));
-      min-height: 1.2em;
-      opacity:0.95;
-    }
-  
-    /* Layout tuning */
-    .wrapper{
-      padding-top: calc(4.2rem + env(safe-area-inset-top)); /* keep clear of top buttons */
-    }
-
-    /* Make side boards a bit narrower so they don't cover the middle */
-    #scoreLeft, #scoreRight{
-      width: min(30vw, 360px);
-    }
-    body.team-mode #scoreLeft{ width: min(40vw, 460px); }
-
-    /* Let names wrap (no single-line truncation) */
-    .scoreName{
-      white-space: normal !important;
-      overflow: visible !important;
-      text-overflow: clip !important;
-      line-height: 1.1;
-    }
-
-    /* Allow rows to grow for wrapped text */
-    .scoreRow{
-      min-height: 58px;
-      align-items: start;
-      padding-top: 0.48rem;
-      padding-bottom: 0.48rem;
-    }
-
-    /* Heading row with column labels */
-    .colHeader{
-      display:grid;
-      grid-template-columns: 46px 1fr 70px 46px 86px;
-      gap:0.42rem;
-      align-items:center;
-      font-weight:950;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      opacity:0.82;
-      font-size: calc(clamp(10px, 1.6vw, 13px) * var(--ui-scale));
-      padding: 0.25rem 0.35rem 0.4rem;
-      border-bottom: 1px dashed rgba(255,255,255,0.18);
-      margin-bottom: 0.25rem;
-    }
-    .colHeader .c1{ text-align:center; opacity:0.75; }
-    .colHeader .c2{ text-align:left; }
-    .colHeader .c3{ text-align:center; }
-    .colHeader .c4{ text-align:center; opacity:0.75; }
-    .colHeader .c5{ text-align:center; }
-
-    /* Keep the BUFFALO title from being covered */
-    #titleBar{
-      margin-top: calc(0.4rem + env(safe-area-inset-top));
-    }
-
-    /* Add a toggle button for the boards */
-    #boardsBtn{
-      background: rgba(255,255,255,0.95);
-      color:#111827; border:none;
-      padding:0.5rem 0.9rem; font-size: calc(0.9rem * var(--ui-scale));
-      border-radius:999px; font-weight:800;
-      cursor:pointer; opacity:0.92;
-      backdrop-filter: blur(6px);
-      box-shadow:0 0.4rem 1rem rgba(0,0,0,0.3);
-    }
-
-    body.boards-hidden #scoreLeft,
-    body.boards-hidden #scoreRight{
-      display:none;
-    }
-    body.boards-hidden .wrapper{
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-    }
-
   </style>
 </head>
-<body>
+<body style="background: radial-gradient(circle at center top, rgb(255, 177, 153) 0px, rgb(255, 8, 68) 40%, rgb(38, 0, 41) 100%);" class="">
   <div id="dimOverlay"></div>
 
-  <div id="startOverlay">
+  <div id="startOverlay" class="hidden">
     <div class="startBox">
       <div class="startTitle">Buffalo Game</div>
       <p class="startSub">Tap start, then keep an eye on the hand. If someone gets caught with the drink in the wrong hand… scull it 🍺</p>
@@ -624,31 +437,100 @@
     <button id="wakeBtn">🔒 Awake</button>
     <button id="historyBtn">📜 History</button>
     <button id="statsBtn">📊 Stats</button>
-    <button id="boardsBtn">🏆 Board</button>
-        <button id="rulesBtn">?</button>
+    <button id="rulesBtn">?</button>
     <button id="settingsBtn">⚙️</button>
-    <button id="devPowerBtn">⚡ PP</button>
+    <button id="devPowerBtn" class="on">⚡ PP</button>
   </div>
 
   <button id="pauseBtn">Pause</button>
   <button id="resetBtn">Reset</button>
 
   <div id="sideScores">
-    <div id="scoreLeft"></div>
-    <div id="scoreRight"></div>
+    <div id="scoreLeft"><div class="rowHeader">
+        <div>Players</div>
+        <div class="headerHint">Use + / − buttons</div>
+      </div>
+          <div class="scoreRow " data-type="player" data-name="Moises">
+            <div class="bar" style="width:100%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Moises" aria-label="Minus">−</button>
+            <div class="scoreName">🐙 Moises</div>
+            <div class="badge drinks" title="Drinks">1</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Moises" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="Gary">
+            <div class="bar" style="width:100%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Gary" aria-label="Minus">−</button>
+            <div class="scoreName">🦁 Gary</div>
+            <div class="badge drinks" title="Drinks">1</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Gary" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="George">
+            <div class="bar" style="width:100%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="George" aria-label="Minus">−</button>
+            <div class="scoreName">🦊 George</div>
+            <div class="badge drinks" title="Drinks">1</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="George" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="Moto Moto">
+            <div class="bar" style="width:0%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Moto Moto" aria-label="Minus">−</button>
+            <div class="scoreName">🐻 Moto Moto</div>
+            <div class="badge drinks" title="Drinks">0</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Moto Moto" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div></div>
+    <div id="scoreRight"><div class="rowHeader">
+        <div>Players</div>
+        <div class="headerHint">Use + / − buttons</div>
+      </div>
+          <div class="scoreRow " data-type="player" data-name="Matt">
+            <div class="bar" style="width:0%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Matt" aria-label="Minus">−</button>
+            <div class="scoreName">🐯 Matt</div>
+            <div class="badge drinks" title="Drinks">0</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Matt" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">1</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="Jackson">
+            <div class="bar" style="width:0%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Jackson" aria-label="Minus">−</button>
+            <div class="scoreName">🦄 Jackson</div>
+            <div class="badge drinks" title="Drinks">0</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Jackson" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="Squeky">
+            <div class="bar" style="width:0%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Squeky" aria-label="Minus">−</button>
+            <div class="scoreName">🐸 Squeky</div>
+            <div class="badge drinks" title="Drinks">0</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Squeky" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">0</div>
+          </div>
+          <div class="scoreRow " data-type="player" data-name="Arnab">
+            <div class="bar" style="width:0%"></div>
+            <button class="adjBtn minus" data-adj="minus" data-kind="player" data-name="Arnab" aria-label="Minus">−</button>
+            <div class="scoreName">🐼 Arnab</div>
+            <div class="badge drinks" title="Drinks">0</div>
+            <button class="adjBtn plus" data-adj="plus" data-kind="player" data-name="Arnab" aria-label="Plus">+</button>
+            <div class="badge power" title="Power Plays">1</div>
+          </div></div>
   </div>
 
-  <div id="historyPanel">
+  <div id="historyPanel" style="display: none;">
     <div id="historyTitleRow">
       <div id="historyTitle">History</div>
       <button id="clearHistoryBtn">Clear</button>
     </div>
-    <div id="historyList"></div>
+    <div id="historyList"><div class="historyItem"><strong>07:59</strong> — Power play completed</div><div class="historyItem"><strong>07:59</strong> — POWER PLAY → Matt: Finish your drink</div><div class="historyItem"><strong>07:59</strong> — Settings saved</div><div class="historyItem"><strong>07:59</strong> — Game started</div><div class="historyItem"><strong>07:59</strong> — Audio unlocked</div><div class="historyItem"><strong>07:59</strong> — Ready</div></div>
   </div>
 
   <div class="wrapper">
     <div id="titleBar">BUFFALO</div>
-    <div id="statusPill"><span id="statusDot"></span><span id="statusText">READY</span></div>
+    <div id="statusPill"><span id="statusDot" style="background: rgb(34, 197, 94); box-shadow: rgba(34, 197, 94, 0.9) 0px 0px 0.9rem;"></span><span id="statusText">RUNNING</span></div>
 
     <div class="hand-panel" id="handPanel">
       <div id="handEmoji">👉🍺</div>
@@ -656,19 +538,19 @@
       <div id="drinkHint">Drink stays in LEFT hand</div>
     </div>
 
-    <div id="timerText">Tap START to begin</div>
+    <div id="timerText">Running</div>
     <div id="hintLine">Double-tap to flip hand</div>
   </div>
 
   <!-- POWER PLAY -->
   <div id="powerPlayOverlay" class="hidden">
     <div class="power-box" id="powerBox">
-      <div class="power-accent" id="powerAccent"></div>
+      <div class="power-accent" id="powerAccent" style="background: rgb(239, 68, 68);"></div>
       <div class="power-title">POWER PLAY</div>
-      <div class="power-icon" id="powerIcon">🎉</div>
-      <div class="power-name" id="powerName"></div>
-      <div class="power-action" id="powerAction"></div>
-      <button class="power-complete-btn" id="powerCompleteBtn">COMPLETE</button>
+      <div class="power-icon" id="powerIcon">🐯</div>
+      <div class="power-name" id="powerName">Matt</div>
+      <div class="power-action" id="powerAction">Finish your drink</div>
+      <button class="power-complete-btn" id="powerCompleteBtn" style="background: rgb(220, 38, 38);">COMPLETE</button>
     </div>
   </div>
 
@@ -705,10 +587,19 @@
 
       <div id="teamsSection" style="display:none;">
         <label>Teams (one per line)</label>
-        <textarea id="teamsText" style="min-height:170px;" placeholder="Team A&#10;Team B"></textarea>
+        <textarea id="teamsText" style="min-height:170px;" placeholder="Team A
+Team B"></textarea>
 
         <label style="margin-top:0.8rem;">Team breakdown</label>
-        <div id="teamBreakdown" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;"></div>
+        <div id="teamBreakdown" style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
+          <div style="margin-bottom:0.55rem;">
+            <div style="font-weight:950;">Team A</div>
+            <div style="opacity:0.85;">Moises, Gary, George, Moto Moto, Matt, Jackson, Squeky, Arnab</div>
+          </div>
+          <div style="margin-bottom:0.55rem;">
+            <div style="font-weight:950;">Team B</div>
+            <div style="opacity:0.85;">—</div>
+          </div></div>
       </div>
 
       <label>Power Plays (one per line)</label>
@@ -735,9 +626,9 @@
 
       <label>Sound toggles</label>
       <div style="margin-top:0.2rem;">
-        <label style="font-weight:900;"><input type="checkbox" id="toggleMainSiren" checked> Main 10s warning sounds</label>
-        <label style="font-weight:900;"><input type="checkbox" id="toggleEvilLaugh" checked> Evil laugh for zaps</label>
-        <label style="font-weight:900;"><input type="checkbox" id="toggleApplause" checked> Applause on complete</label>
+        <label style="font-weight:900;"><input type="checkbox" id="toggleMainSiren" checked=""> Main 10s siren</label>
+        <label style="font-weight:900;"><input type="checkbox" id="toggleEvilLaugh" checked=""> Evil laugh for zaps</label>
+        <label style="font-weight:900;"><input type="checkbox" id="toggleApplause" checked=""> Applause on complete</label>
       </div>
 
       <label>Dev options</label>
@@ -757,10 +648,8 @@
     <div class="overlay-box">
       <h2>Rules</h2>
       <ul>
-        <li><strong>Hand Switch Warning:</strong> last 10 seconds shows a countdown + sounds.</li>
         <li>Use the <strong>+ / −</strong> buttons next to each player to track drinks.</li>
         <li><strong>Teams mode:</strong> team rows also have + / − (team drinks are separate from player drinks).</li>
-        <li><strong>Power plays:</strong> player/team is chosen randomly, but the <strong>wheel</strong> decides the challenge.</li>
       </ul>
       <div class="overlay-actions"><button class="btn-primary" id="rulesCloseBtn">Close</button></div>
     </div>
@@ -780,10 +669,6 @@
 
       <div id="statsCards" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem 1rem; margin-bottom:0.9rem;">
         <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
-          <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Rounds (auto switches)</div>
-          <div id="statsRounds" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
-        </div>
-        <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
           <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total player drinks</div>
           <div id="statsTotalPlayerDrinks" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
         </div>
@@ -795,6 +680,10 @@
           <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total power plays</div>
           <div id="statsTotalPp" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
         </div>
+        <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
+          <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total drinks (all)</div>
+          <div id="statsTotalAllDrinks" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
+        </div>
       </div>
 
       <div id="statsTeamsBlock" style="display:none; background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem; margin-bottom:0.9rem;"></div>
@@ -802,11 +691,6 @@
       <div id="statsLeaderboardBlock" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
         <div style="font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:0.4rem;">Players</div>
         <div id="statsPlayersList"></div>
-      </div>
-
-      <div id="ppTypeBlock" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem; margin-top:0.9rem;">
-        <div style="font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:0.4rem;">Power Plays by Type</div>
-        <div id="ppTypeList"></div>
       </div>
 
       <!-- Heatmap -->
@@ -822,8 +706,7 @@
       </div>
 
       <div class="overlay-actions" style="margin-top:1rem;">
-        <button class="btn-secondary" id="shareSessionBtn">Share</button>
-        <button class="btn-secondary" id="exportSessionBtn">Copy summary</button>
+        <button class="btn-secondary" id="exportSessionBtn">Export session</button>
         <button class="btn-danger" id="statsResetCountsBtn">Reset counts</button>
         <button class="btn-primary" id="statsCloseBtn">Close</button>
       </div>
@@ -832,10 +715,10 @@
     </div>
   </div>
 
-  <div id="completeFlash">DONE!</div>
+  <div id="completeFlash" class="">DONE!</div>
 
   <script>
-    const STORAGE_KEY = "buffaloGameSettings_v21_canvasWheel";
+    const STORAGE_KEY = "buffaloGameSettings_v19_plusminus";
 
     function loadSavedSettings() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
     function saveSettingsToStorage(obj) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {} }
@@ -866,7 +749,8 @@
     ];
 
     let isRight = true, darkMode = false;
-    let timerId = null, nextChangeTime = null, countdownIntervalId = null;
+    let timerId = null, nextChangeTime = null, countdownIntervalId = null, mainTenSecondSirenPlayed = false;
+    let powerTimerId = null;
     let audioCtx = null, audioUnlocked = false;
     let isPaused = false, gameStarted = false;
     let lastTapTime = 0;
@@ -875,19 +759,6 @@
     let drinkCounts = {};
     let teamDrinkCounts = {};
     let icons = {};
-
-    // New stats
-    let roundCount = 0; // auto hand switches
-    let powerPlayTypeCounts = {}; // action string -> count
-
-    // 10 second warning system
-    let lastWarnSecond = null;
-
-    // Wheel state
-    let wheelSpinning = false;
-    let wheelRotationDeg = 0;
-    let pendingPowerTarget = null;
-    let pendingPowerAction = null;
 
     // Session tracking for heatmap + export
     let sessionStartedAt = null;
@@ -901,9 +772,664 @@
     let historyAutoHideId = null;
 
     let wakeLock = null, keepAwakeEnabled = false;
+
     let persistTimer = null;
 
-    // Canvas wheel references
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+    function normalizeList(text) {
+      const lines = String(text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const seen = new Set(), out = [];
+      for (const n of lines) { const k = n.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(n); } }
+      return out;
+    }
+    function normalizeNames(text) { return normalizeList(text).filter(n => n.toLowerCase() !== 'group'); }
+
+    function setDim(percent){
+      dimPercent = Math.max(0, Math.min(85, Number(percent) || 0));
+      document.documentElement.style.setProperty('--dim-opacity', String(dimPercent / 100));
+    }
+    function setHugeText(on){
+      hugeTextMode = !!on;
+      document.body.classList.toggle('hugeText', hugeTextMode);
+    }
+
+    function pad2(n){ return String(n).padStart(2,'0'); }
+    function timestampNow() { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+
+    function logEvent(type, label = '', meta = null){
+      const now = Date.now();
+      sessionEvents.push({ t: now, type, label, meta: meta || undefined });
+      if (sessionEvents.length > MAX_SESSION_EVENTS) sessionEvents.shift();
+    }
+
+    function addHistory(text) {
+      historyItems.unshift({ time: timestampNow(), text });
+      if (historyItems.length > HISTORY_MAX) historyItems.length = HISTORY_MAX;
+      renderHistory();
+    }
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = historyItems.map(item => (
+        `<div class="historyItem"><strong>${escapeHtml(item.time)}</strong> — ${escapeHtml(item.text)}</div>`
+      )).join('') || `<div style="opacity:0.75;">No events yet</div>`;
+    }
+    function scheduleHistoryAutoHide() {
+      if (!historyVisible) return;
+      if (historyAutoHideId) clearTimeout(historyAutoHideId);
+      historyAutoHideId = setTimeout(() => setHistoryVisible(false), HISTORY_AUTOHIDE_MS);
+    }
+    function setHistoryVisible(v) {
+      historyVisible = v;
+      document.getElementById('historyPanel').style.display = historyVisible ? 'block' : 'none';
+      document.getElementById('historyBtn').textContent = historyVisible ? '📜 Hide' : '📜 History';
+      if (historyVisible) scheduleHistoryAutoHide();
+      else { if (historyAutoHideId) clearTimeout(historyAutoHideId); historyAutoHideId = null; }
+    }
+    function clearHistory() {
+      historyItems = [];
+      renderHistory();
+      addHistory('History cleared');
+      logEvent('history_cleared', 'History cleared');
+      scheduleHistoryAutoHide();
+      persistSoon();
+    }
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+    }
+
+    function playDing() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      function beep(freq, offset, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + offset);
+        gain.gain.setValueAtTime(0.0001, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.9, now + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(now + offset); osc.stop(now + offset + duration + 0.05);
+      }
+      beep(660, 0, 0.35); beep(880, 0.25, 0.40); beep(1046, 0.55, 0.45);
+    }
+    function playPowerSound() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc1.type = 'sawtooth'; osc2.type = 'square';
+      osc1.frequency.setValueAtTime(220, now); osc1.frequency.exponentialRampToValueAtTime(880, now + 1.2); osc1.frequency.exponentialRampToValueAtTime(330, now + 2.6);
+      osc2.frequency.setValueAtTime(440, now); osc2.frequency.exponentialRampToValueAtTime(1320, now + 1.0); osc2.frequency.exponentialRampToValueAtTime(440, now + 2.4);
+      gain.gain.setValueAtTime(0.0001, now); gain.gain.exponentialRampToValueAtTime(0.95, now + 0.05); gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+      osc1.start(now); osc2.start(now); osc1.stop(now + 3.0); osc2.stop(now + 3.0);
+    }
+    function playTenSecondSiren() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+      osc.frequency.exponentialRampToValueAtTime(600, now + 0.6);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(1.0, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.8);
+    }
+    function playApplause() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const gain = audioCtx.createGain();
+      const a = audioCtx.createOscillator(), b = audioCtx.createOscillator(), c = audioCtx.createOscillator();
+      a.type='square'; b.type='triangle'; c.type='sine';
+      a.frequency.setValueAtTime(440, now); b.frequency.setValueAtTime(660, now); c.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.85, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+      a.connect(gain); b.connect(gain); c.connect(gain); gain.connect(audioCtx.destination);
+      a.start(now); b.start(now); c.start(now);
+      a.stop(now+1.2); b.stop(now+1.2); c.stop(now+1.2);
+    }
+    function playEvilLaugh() {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const gain = audioCtx.createGain();
+      const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator();
+      osc1.type='sawtooth'; osc2.type='square';
+      osc1.frequency.setValueAtTime(180, now);
+      osc1.frequency.exponentialRampToValueAtTime(420, now + 0.2);
+      osc1.frequency.exponentialRampToValueAtTime(150, now + 0.4);
+      osc1.frequency.exponentialRampToValueAtTime(520, now + 0.6);
+      osc1.frequency.exponentialRampToValueAtTime(160, now + 0.9);
+      osc2.frequency.setValueAtTime(260, now);
+      osc2.frequency.exponentialRampToValueAtTime(520, now + 0.25);
+      osc2.frequency.exponentialRampToValueAtTime(220, now + 0.5);
+      osc2.frequency.exponentialRampToValueAtTime(620, now + 0.75);
+      osc2.frequency.exponentialRampToValueAtTime(230, now + 1.0);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.95, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.7);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+      osc1.start(now); osc2.start(now); osc1.stop(now+1.4); osc2.stop(now+1.4);
+    }
+    function haptic(pattern){ try{ if (navigator.vibrate) navigator.vibrate(pattern); } catch {} }
+
+    function setStatus(mode){
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      if (mode === 'READY'){
+        dot.style.background = '#94a3b8';
+        dot.style.boxShadow = '0 0 0.9rem rgba(148,163,184,0.7)';
+        txt.textContent = 'READY';
+      } else if (mode === 'RUNNING'){
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow = '0 0 0.9rem rgba(34,197,94,0.9)';
+        txt.textContent = 'RUNNING';
+      } else if (mode === 'PAUSED'){
+        dot.style.background = '#fbbf24';
+        dot.style.boxShadow = '0 0 0.9rem rgba(251,191,36,0.95)';
+        txt.textContent = 'PAUSED';
+      } else if (mode === 'POWER'){
+        dot.style.background = '#a855f7';
+        dot.style.boxShadow = '0 0 0.9rem rgba(168,85,247,0.95)';
+        txt.textContent = 'POWER PLAY';
+      } else { txt.textContent = mode; }
+    }
+
+    function applyDevButtonVisibility(){
+      document.getElementById('devPowerBtn').classList.toggle('on', !!devShowPowerButton);
+    }
+    function applyTeamsModeBodyClass(){
+      document.body.classList.toggle('team-mode', !!teamsMode);
+    }
+
+    function applyBackground() {
+      if (darkMode) { document.body.style.background = 'radial-gradient(circle at top, #020617 0, #000000 60%)'; return; }
+      document.body.style.background = isRight
+        ? 'radial-gradient(circle at top, #ffb199 0, #ff0844 40%, #260029 100%)'
+        : 'radial-gradient(circle at top, #9be15d 0, #00e3ae 40%, #003b46 100%)';
+    }
+    function updateScreen() {
+      document.getElementById('handText').textContent = isRight ? 'RIGHT HAND' : 'LEFT HAND';
+      document.getElementById('handEmoji').textContent = isRight ? '👉🍺' : '🍺👈';
+      document.getElementById('drinkHint').textContent = isRight ? 'Drink stays in LEFT hand' : 'Drink stays in RIGHT hand';
+      applyBackground();
+    }
+
+    function showCompleteFlash() {
+      const flash = document.getElementById('completeFlash');
+      flash.classList.add('visible');
+      setTimeout(() => flash.classList.remove('visible'), 650);
+    }
+
+    function getPowerTargets() {
+      const base = teamsMode ? [...teamNames] : [...playerNames];
+      if (ALWAYS_INCLUDE_GROUP) base.push('Group');
+      return base;
+    }
+
+    function buildPlayersByTeam(){
+      const map = {};
+      for (const t of teamNames) map[t] = Array.isArray(teamMap[t]) ? [...teamMap[t]] : [];
+
+      const allAssigned = new Set(Object.values(map).flat().map(x => String(x)));
+      const unassigned = playerNames.filter(p => !allAssigned.has(p));
+      if (unassigned.length){
+        const fallbackTeam = teamNames[0] || 'Team';
+        map[fallbackTeam] = (map[fallbackTeam] || []).concat(unassigned);
+      }
+      return map;
+    }
+
+    function getLeaderboardRowsGrouped() {
+      if (!teamsMode) return playerNames.map(p => ({ type:'player', name:p, sub:false, team:null }));
+
+      const byTeam = buildPlayersByTeam();
+      const rows = [];
+
+      for (const t of teamNames){
+        rows.push({ type:'team', name:t, sub:false, team:t });
+        const members = byTeam[t] || [];
+        for (const p of members){
+          rows.push({ type:'player', name:p, sub:true, team:t });
+        }
+      }
+      if (ALWAYS_INCLUDE_GROUP) rows.push({ type:'group', name:'Group', sub:false, team:null });
+      return rows;
+    }
+
+    function renderTeamBreakdownHtml(){
+      const tnames = [...teamNames];
+      if (!tnames.length) return `<div style="opacity:0.75;">No teams set</div>`;
+      const byTeam = buildPlayersByTeam();
+      return tnames.map(t => {
+        const members = byTeam[t] || [];
+        const list = members.length ? members.join(', ') : '—';
+        return `
+          <div style="margin-bottom:0.55rem;">
+            <div style="font-weight:950;">${escapeHtml(t)}</div>
+            <div style="opacity:0.85;">${escapeHtml(list)}</div>
+          </div>`;
+      }).join('');
+    }
+    function refreshTeamBreakdownPanels(){
+      const el = document.getElementById('teamBreakdown');
+      if (el) el.innerHTML = renderTeamBreakdownHtml();
+    }
+
+    function rebuildSystems(keepCounts = true) {
+      const oldPower = keepCounts ? { ...powerCounts } : {};
+      const oldDrinks = keepCounts ? { ...drinkCounts } : {};
+      const oldTeamDrinks = keepCounts ? { ...teamDrinkCounts } : {};
+      const oldIcons = keepCounts ? { ...icons } : {};
+
+      powerCounts = {};
+      drinkCounts = {};
+      teamDrinkCounts = {};
+      icons = {};
+
+      let iconIndex = 0;
+
+      for (const p of playerNames) {
+        drinkCounts[p] = oldDrinks[p] || 0;
+        icons[p] = oldIcons[p] || ICON_POOL[iconIndex++ % ICON_POOL.length];
+      }
+      for (const t of teamNames) {
+        icons[t] = oldIcons[t] || '🟦';
+        teamDrinkCounts[t] = oldTeamDrinks[t] || 0;
+      }
+      icons['Group'] = oldIcons['Group'] || '🎉';
+
+      for (const tgt of getPowerTargets()) powerCounts[tgt] = oldPower[tgt] || 0;
+
+      applyTeamsModeBodyClass();
+      renderLeaderboard(null);
+      refreshTeamBreakdownPanels();
+      persistSoon();
+    }
+
+    function renderLeaderboard(highlightName = null) {
+      const left = document.getElementById('scoreLeft');
+      const right = document.getElementById('scoreRight');
+
+      const rows = getLeaderboardRowsGrouped();
+      const byTeam = teamsMode ? buildPlayersByTeam() : null;
+
+      const maxPower = Math.max(1, ...rows.map(r => (powerCounts[r.name] || 0)));
+      const maxPlayerDrinks = Math.max(1, ...rows.filter(r => r.type==='player').map(r => (drinkCounts[r.name] || 0)));
+      const maxTeamDrinks = Math.max(1, ...rows.filter(r => r.type==='team').map(r => (teamDrinkCounts[r.name] || 0)));
+      const maxForBar = Math.max(maxPower, maxPlayerDrinks, maxTeamDrinks);
+
+      const headerText = teamsMode ? 'Teams' : 'Players';
+      const headerHtml = `<div class="rowHeader">
+        <div>${escapeHtml(headerText)}</div>
+        <div class="headerHint">Use + / − buttons</div>
+      </div>`;
+
+      function rowHtml(r){
+        const name = r.name;
+        const icon = icons[name] || (r.type==='team' ? '🟦' : (r.type==='group' ? '🎉' : '👤'));
+
+        let drinksDisplay = '—';
+        let drinksTitle = 'Drinks';
+        let ppDisplay = (powerCounts[name] || 0);
+
+        // +/- buttons only for players & teams (not Group)
+        const canAdjust = (r.type === 'player') || (r.type === 'team');
+        const kind = r.type; // player/team/group
+
+        if (r.type === 'player'){
+          drinksDisplay = (drinkCounts[name] || 0);
+          ppDisplay = teamsMode ? '—' : (powerCounts[name] || 0);
+        }
+
+        if (r.type === 'team'){
+          const members = (byTeam && byTeam[name]) ? byTeam[name] : [];
+          const memberDrinks = members.reduce((sum,p)=>sum + (drinkCounts[p]||0), 0);
+          const tDrinks = (teamDrinkCounts[name] || 0);
+
+          drinksDisplay = teamRowShowsCombined ? (tDrinks + memberDrinks) : tDrinks;
+          ppDisplay = (powerCounts[name] || 0);
+
+          if (teamRowShowsCombined) {
+            drinksTitle = `Team drinks: ${tDrinks} + Player drinks: ${memberDrinks} = ${tDrinks + memberDrinks} (T+P)`;
+          } else {
+            drinksTitle = `Team drinks: ${tDrinks} (T)`;
+          }
+        }
+
+        if (r.type === 'group'){
+          drinksDisplay = '—';
+        }
+
+        const clsBase = (r.type === 'team' || r.type === 'group') ? 'scoreRow teamRow' : 'scoreRow';
+        const cls = (highlightName === name) ? (clsBase + ' highlight') : clsBase;
+
+        const barValue =
+          r.type === 'team' ? (teamDrinkCounts[name] || 0)
+          : r.type === 'player' ? (drinkCounts[name] || 0)
+          : (powerCounts[name] || 0);
+
+        const pct = Math.round((barValue / maxForBar) * 100);
+
+        const nameExtraClass = (r.type === 'player' && r.sub) ? 'playerSubRow' : '';
+
+        let title = '';
+        if ((r.type === 'team') && teamsMode){
+          const members = (byTeam && byTeam[name]) ? byTeam[name] : [];
+          const memberDrinks = members.reduce((sum,p)=>sum + (drinkCounts[p]||0), 0);
+          const tDrinks = (teamDrinkCounts[name] || 0);
+          title = `title="${escapeHtml(members.join(', ') || '—')} • Team drinks: ${tDrinks} • Player drinks sum: ${memberDrinks}${teamRowShowsCombined ? ` • Combined shown: ${tDrinks+memberDrinks}` : ''}"`;
+        }
+
+        const minusBtn = canAdjust
+          ? `<button class="adjBtn minus" data-adj="minus" data-kind="${escapeHtml(kind)}" data-name="${escapeHtml(name)}" aria-label="Minus">−</button>`
+          : `<div style="width:46px;height:46px;"></div>`;
+
+        const plusBtn = canAdjust
+          ? `<button class="adjBtn plus" data-adj="plus" data-kind="${escapeHtml(kind)}" data-name="${escapeHtml(name)}" aria-label="Plus">+</button>`
+          : `<div style="width:46px;height:46px;"></div>`;
+
+        return `
+          <div class="${cls} ${nameExtraClass}" data-type="${escapeHtml(r.type)}" data-name="${escapeHtml(name)}">
+            <div class="bar" style="width:${pct}%"></div>
+            ${minusBtn}
+            <div class="scoreName" ${title}>${escapeHtml(icon)} ${escapeHtml(name)}</div>
+            <div class="badge drinks" title="${escapeHtml(drinksTitle)}">${drinksDisplay}</div>
+            ${plusBtn}
+            <div class="badge power" title="Power Plays">${ppDisplay}</div>
+          </div>`;
+      }
+
+      if (teamsMode){
+        left.innerHTML = headerHtml + rows.map(rowHtml).join('');
+        right.innerHTML = '';
+      } else {
+        const mid = Math.ceil(rows.length / 2);
+        left.innerHTML = headerHtml + rows.slice(0, mid).map(rowHtml).join('');
+        right.innerHTML = headerHtml + rows.slice(mid).map(rowHtml).join('');
+      }
+    }
+
+    function incrementDrink(player){
+      if (!player) return;
+      drinkCounts[player] = (drinkCounts[player] || 0) + 1;
+      addHistory(`Player drink +1 → ${player}`);
+      logEvent('drink_add', player, { who: player, delta: 1 });
+      haptic([20]);
+      renderLeaderboard(player);
+      persistSoon();
+    }
+    function decrementDrink(player){
+      if (!player) return;
+      drinkCounts[player] = Math.max(0, (drinkCounts[player] || 0) - 1);
+      addHistory(`Player drink -1 → ${player}`);
+      logEvent('drink_sub', player, { who: player, delta: -1 });
+      haptic([35, 30, 35]);
+      renderLeaderboard(player);
+      persistSoon();
+    }
+
+    function incrementTeamDrink(team){
+      if (!team) return;
+      teamDrinkCounts[team] = (teamDrinkCounts[team] || 0) + 1;
+      addHistory(`Team drink +1 → ${team}`);
+      logEvent('team_drink_add', team, { team, delta: 1 });
+      haptic([22]);
+      renderLeaderboard(team);
+      persistSoon();
+    }
+    function decrementTeamDrink(team){
+      if (!team) return;
+      teamDrinkCounts[team] = Math.max(0, (teamDrinkCounts[team] || 0) - 1);
+      addHistory(`Team drink -1 → ${team}`);
+      logEvent('team_drink_sub', team, { team, delta: -1 });
+      haptic([40, 35, 40]);
+      renderLeaderboard(team);
+      persistSoon();
+    }
+
+    function attachLeaderboardHandlers(){
+      const left = document.getElementById('scoreLeft');
+      const right = document.getElementById('scoreRight');
+
+      function handleAdjClick(e){
+        const btn = e.target.closest('[data-adj]');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const adj = btn.getAttribute('data-adj'); // plus/minus
+        const kind = btn.getAttribute('data-kind'); // player/team
+        const name = btn.getAttribute('data-name');
+
+        if (kind === 'player'){
+          if (adj === 'plus') incrementDrink(name);
+          else decrementDrink(name);
+          return;
+        }
+        if (kind === 'team'){
+          if (adj === 'plus') incrementTeamDrink(name);
+          else decrementTeamDrink(name);
+          return;
+        }
+      }
+
+      left.addEventListener('click', handleAdjClick);
+      right.addEventListener('click', handleAdjClick);
+    }
+
+    function updateTimerText() {
+      const t = document.getElementById('timerText');
+      const handPanel = document.getElementById('handPanel');
+
+      if (!gameStarted) { t.textContent = 'Tap START to begin'; handPanel.classList.remove('pulse'); setStatus('READY'); return; }
+      if (isPaused) { t.textContent = 'Paused'; handPanel.classList.remove('pulse'); setStatus('PAUSED'); return; }
+      if (!nextChangeTime) { t.textContent = 'Running'; handPanel.classList.remove('pulse'); setStatus('RUNNING'); return; }
+
+      const diff = nextChangeTime - Date.now();
+      const totalSec = Math.max(0, Math.floor(diff / 1000));
+
+      if (totalSec > 0 && totalSec <= 10) handPanel.classList.add('pulse');
+      else handPanel.classList.remove('pulse');
+
+      if (enableMainTenSecondSiren && totalSec === 10 && !mainTenSecondSirenPlayed && audioUnlocked) {
+        mainTenSecondSirenPlayed = true;
+        playTenSecondSiren();
+        haptic([120, 60, 120]);
+        logEvent('main_10s_siren', 'Main 10s siren');
+      }
+      t.textContent = 'Running';
+      setStatus('RUNNING');
+    }
+
+    function scheduleRandomSwitch() {
+      if (isPaused) return;
+      if (timerId) clearTimeout(timerId);
+
+      const minutes = mainMinMinutes + Math.random() * (mainMaxMinutes - mainMinMinutes);
+      const ms = minutes * 60 * 1000;
+
+      nextChangeTime = Date.now() + ms;
+      mainTenSecondSirenPlayed = false;
+      updateTimerText();
+      setStatus('RUNNING');
+
+      timerId = setTimeout(() => {
+        if (isPaused) return;
+        isRight = !isRight;
+        updateScreen();
+        if (audioUnlocked) playDing();
+        haptic([60]);
+        addHistory(`Auto hand switch → ${isRight ? 'RIGHT HAND' : 'LEFT HAND'}`);
+        logEvent('hand_auto', isRight ? 'RIGHT' : 'LEFT', { side: isRight ? 'RIGHT' : 'LEFT' });
+        scheduleRandomSwitch();
+        persistSoon();
+      }, ms);
+    }
+
+    function schedulePowerPlay() {
+      if (isPaused) return;
+      if (powerTimerId) clearTimeout(powerTimerId);
+
+      const minutes = powerMinMinutes + Math.random() * (powerMaxMinutes - powerMinMinutes);
+      const ms = minutes * 60 * 1000;
+
+      powerTimerId = setTimeout(showPowerPlay, ms);
+    }
+
+    function pickPowerAccent(actionText){
+      const a = String(actionText || '').toLowerCase();
+      if (a.includes('zapped')) return { color:'#a855f7', button:'#7c3aed' };
+      if (a.includes('shot')) return { color:'#f59e0b', button:'#d97706' };
+      if (a.includes('finish')) return { color:'#ef4444', button:'#dc2626' };
+      return { color:'#2563eb', button:'#1d4ed8' };
+    }
+
+    function spawnConfetti() {
+      const box = document.getElementById('powerBox');
+      const w = box.clientWidth;
+      for (let i = 0; i < 18; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti';
+        el.textContent = CONFETTI_EMOJI[Math.floor(Math.random() * CONFETTI_EMOJI.length)];
+        el.style.left = Math.round(Math.random() * (w - 20)) + 'px';
+        el.style.animationDelay = (Math.random() * 0.25) + 's';
+        el.style.fontSize = (18 + Math.random() * 18) + 'px';
+        box.appendChild(el);
+        setTimeout(() => el.remove(), 2200);
+      }
+    }
+
+    function showPowerPlay(force = false) {
+      if (isPaused && !force) return;
+
+      const targets = getPowerTargets();
+      const target = targets[Math.floor(Math.random() * targets.length)];
+      const action = (powerPlays && powerPlays.length) ? powerPlays[Math.floor(Math.random() * powerPlays.length)] : 'Finish your drink';
+
+      document.getElementById('powerName').textContent = target;
+      document.getElementById('powerAction').textContent = action;
+      document.getElementById('powerIcon').textContent = icons[target] || '🎲';
+
+      const accent = pickPowerAccent(action);
+      document.getElementById('powerAccent').style.background = accent.color;
+      document.getElementById('powerCompleteBtn').style.background = accent.button;
+
+      powerCounts[target] = (powerCounts[target] || 0) + 1;
+      renderLeaderboard(null);
+
+      document.getElementById('powerPlayOverlay').classList.remove('hidden');
+      document.body.classList.add('power-flash');
+      document.body.classList.add('player-glow');
+      setStatus('POWER');
+
+      addHistory(`POWER PLAY → ${target}: ${action}`);
+      logEvent('power_show', target, { target, action });
+      spawnConfetti();
+      haptic([200, 80, 200]);
+
+      if (audioUnlocked) {
+        const lower = String(action).toLowerCase();
+        if (lower.includes('zapped') && enableEvilLaugh) playEvilLaugh();
+        else playPowerSound();
+      }
+      persistSoon();
+    }
+
+    function hidePowerPlay() {
+      document.getElementById('powerPlayOverlay').classList.add('hidden');
+      document.body.classList.remove('power-flash');
+      document.body.classList.remove('player-glow');
+      if (!isPaused) schedulePowerPlay();
+      if (gameStarted && !isPaused) setStatus('RUNNING');
+    }
+
+    function startGame() {
+      if (!sessionStartedAt) {
+        sessionStartedAt = Date.now();
+        sessionEvents = [];
+        logEvent('session_start', 'Session start');
+      }
+
+      if (!audioUnlocked) {
+        initAudio();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        audioUnlocked = true;
+        addHistory('Audio unlocked');
+        logEvent('audio_unlocked', 'Audio unlocked');
+      }
+      if (!gameStarted) {
+        gameStarted = true;
+        addHistory('Game started');
+        logEvent('game_started', 'Game started');
+        document.getElementById('startOverlay').classList.add('hidden');
+        setStatus('RUNNING');
+      }
+
+      if (!timerId) {
+        scheduleRandomSwitch();
+        if (!countdownIntervalId) countdownIntervalId = setInterval(updateTimerText, 1000);
+      }
+      if (!powerTimerId) schedulePowerPlay();
+      updateTimerText();
+    }
+
+    function pauseGame() {
+      isPaused = true;
+      if (timerId) { clearTimeout(timerId); timerId = null; }
+      if (powerTimerId) { clearTimeout(powerTimerId); powerTimerId = null; }
+      document.getElementById('pauseBtn').textContent = 'Resume';
+      addHistory('Paused');
+      logEvent('paused', 'Paused');
+      setStatus('PAUSED');
+      updateTimerText();
+      persistSoon();
+    }
+    function resumeGame() {
+      isPaused = false;
+      document.getElementById('pauseBtn').textContent = 'Pause';
+      scheduleRandomSwitch();
+      schedulePowerPlay();
+      addHistory('Resumed');
+      logEvent('resumed', 'Resumed');
+      setStatus('RUNNING');
+      updateTimerText();
+      persistSoon();
+    }
+
+    function persistSoon(){
+      if (persistTimer) return;
+      persistTimer = setTimeout(() => {
+        persistTimer = null;
+        saveSettingsToStorage({
+          teamsMode, teamRowShowsCombined,
+          playerNames, teamNames, teamMap, powerPlays,
+          mainMinMinutes, mainMaxMinutes, powerMinMinutes, powerMaxMinutes,
+          enableMainTenSecondSiren, enableEvilLaugh, enableApplause,
+          dimPercent, hugeTextMode,
+          devShowPowerButton,
+          powerCounts, drinkCounts, teamDrinkCounts,
+          sessionStartedAt,
+          sessionEvents
+        });
+      }, 350);
+    }
 
     // ---- Stats helpers ----
     function totalPlayerDrinks(){ return Object.values(drinkCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
@@ -932,6 +1458,7 @@
 
     function buildHeatmapBuckets(bucketMinutes = 5, maxBuckets = 96){
       if (!sessionStartedAt) return { buckets: [], max: 0 };
+
       const start = sessionStartedAt;
       const now = Date.now();
       const bucketMs = bucketMinutes * 60 * 1000;
@@ -1005,20 +1532,11 @@
       const powerTargets = getPowerTargets();
       const topPowerTarget = getTopEntry(powerCounts, powerTargets);
 
-      const topPpType = (() => {
-        const entries = Object.entries(powerPlayTypeCounts || {});
-        if (!entries.length) return { key: '—', val: 0 };
-        entries.sort((a,b) => (b[1]||0) - (a[1]||0));
-        return { key: entries[0][0], val: entries[0][1]||0 };
-      })();
-
       const totalEvents = sessionEvents.length;
 
       const cards = [
-        { k: 'Rounds', v: `${roundCount}` },
         { k: 'Top drinker', v: `${topPlayer.key} — ${topPlayer.val}` },
-        { k: 'Most targeted', v: `${topPowerTarget.key} — ${topPowerTarget.val}` },
-        { k: 'Top power type', v: `${topPpType.key} — ${topPpType.val}` },
+        { k: 'Most power plays', v: `${topPowerTarget.key} — ${topPowerTarget.val}` },
         { k: 'Top team drinks', v: `${topTeam.key} — ${topTeam.val}` },
         { k: 'Total events', v: `${totalEvents}` }
       ];
@@ -1031,33 +1549,12 @@
       `).join('');
     }
 
-    function renderPowerPlayTypes(){
-      const el = document.getElementById('ppTypeList');
-      const entries = Object.entries(powerPlayTypeCounts || {})
-        .map(([k,v]) => ({ k, v: Number(v)||0 }))
-        .sort((a,b) => (b.v - a.v) || a.k.localeCompare(b.k));
-
-      if (!entries.length){
-        el.innerHTML = `<div style="opacity:0.75;">No power plays yet</div>`;
-        return;
-      }
-
-      el.innerHTML = entries.map(e => `
-        <div style="display:flex; justify-content:space-between; gap:0.6rem; padding:0.35rem 0; border-bottom:1px dashed #e5e7eb;">
-          <div style="font-weight:950;">${escapeHtml(e.k)}</div>
-          <div style="font-weight:950; opacity:0.85;">${e.v}</div>
-        </div>
-      `).join('');
-    }
-
     function openStats(){
       const started = sessionStartedAt ? new Date(sessionStartedAt) : null;
       const duration = sessionStartedAt ? (Date.now() - sessionStartedAt) : 0;
       document.getElementById('statsTopNote').textContent = started
         ? `Started ${started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} • Duration ${formatDuration(duration)}`
         : 'Not started yet';
-
-      document.getElementById('statsRounds').textContent = String(roundCount);
 
       const tp = totalPlayerDrinks();
       const tt = totalTeamDrinks();
@@ -1066,6 +1563,7 @@
       document.getElementById('statsTotalPlayerDrinks').textContent = String(tp);
       document.getElementById('statsTotalTeamDrinks').textContent = String(tt);
       document.getElementById('statsTotalPp').textContent = String(tpp);
+      document.getElementById('statsTotalAllDrinks').textContent = String(tp + tt);
 
       renderMVP();
 
@@ -1107,7 +1605,6 @@
         </div>
       `).join('') || `<div style="opacity:0.75;">No players</div>`;
 
-      renderPowerPlayTypes();
       renderHeatmap();
       document.getElementById('exportHint').textContent = '';
 
@@ -1119,19 +1616,15 @@
       for (const p of playerNames) drinkCounts[p] = 0;
       for (const t of teamNames) teamDrinkCounts[t] = 0;
       for (const tgt of getPowerTargets()) powerCounts[tgt] = 0;
-      powerPlayTypeCounts = {};
-      roundCount = 0;
-
       sessionStartedAt = Date.now();
       sessionEvents = [];
       logEvent('counts_reset', 'Counts reset');
-
       addHistory('Counts reset');
       renderLeaderboard(null);
       persistSoon();
     }
 
-    // ---- Export / Share ----
+    // ---- Export session ----
     function buildSessionExportText(){
       const lines = [];
       const now = new Date();
@@ -1142,7 +1635,7 @@
 
       if (!sessionStartedAt){
         lines.push('No session has started yet.');
-        return lines.join('\\n');
+        return lines.join('\n');
       }
 
       const started = new Date(sessionStartedAt);
@@ -1150,8 +1643,8 @@
 
       lines.push(`Started: ${started.toLocaleString()}`);
       lines.push(`Duration: ${formatDuration(duration)}`);
-      lines.push(`Rounds (auto switches): ${roundCount}`);
       lines.push(`Teams mode: ${teamsMode ? 'ON' : 'OFF'}`);
+      lines.push(`Team row display: ${teamRowShowsCombined ? 'Combined (T+P)' : 'Team only (T)'}`);
       lines.push('');
 
       const tp = totalPlayerDrinks();
@@ -1161,13 +1654,16 @@
       lines.push(`Total player drinks: ${tp}`);
       lines.push(`Total team drinks: ${tt}`);
       lines.push(`Total power plays: ${tpp}`);
+      lines.push(`Total drinks (all): ${tp + tt}`);
       lines.push(`Total events logged: ${sessionEvents.length}`);
       lines.push('');
 
-      lines.push('POWER PLAY TYPES');
-      const ppTypes = Object.entries(powerPlayTypeCounts || {}).sort((a,b) => (b[1]||0)-(a[1]||0));
-      if (!ppTypes.length) lines.push('- (none yet)');
-      else for (const [k,v] of ppTypes) lines.push(`- ${k}: ${v}`);
+      const topPlayer = getTopEntry(drinkCounts, playerNames);
+      const topTeam = getTopEntry(teamDrinkCounts, teamNames);
+      const topPowerTarget = getTopEntry(powerCounts, getPowerTargets());
+      lines.push(`MVP (drinks): ${topPlayer.key} — ${topPlayer.val}`);
+      lines.push(`Top power target: ${topPowerTarget.key} — ${topPowerTarget.val}`);
+      lines.push(`Top team drinks: ${topTeam.key} — ${topTeam.val}`);
       lines.push('');
 
       lines.push('PLAYERS');
@@ -1193,7 +1689,16 @@
         lines.push('');
       }
 
-      return lines.join('\\n');
+      lines.push('LAST EVENTS');
+      const last = sessionEvents.slice(-20);
+      for (const ev of last){
+        const t = new Date(ev.t);
+        const ts = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        const label = ev.label ? ` • ${ev.label}` : '';
+        lines.push(`- ${ts} • ${ev.type}${label}`);
+      }
+
+      return lines.join('\n');
     }
 
     async function copyToClipboard(text){
@@ -1218,28 +1723,6 @@
       } catch {
         return false;
       }
-    }
-
-    async function shareSession(){
-      const text = buildSessionExportText();
-      try{
-        if (navigator.share){
-          await navigator.share({ title: 'Buffalo Session Summary', text });
-          document.getElementById('exportHint').textContent = 'Shared ✅';
-          logEvent('share_session', 'Shared', { ok:true });
-          return;
-        }
-      } catch (e) {
-        document.getElementById('exportHint').textContent = 'Share cancelled.';
-        logEvent('share_session', 'Cancelled', { ok:false });
-        return;
-      }
-
-      const ok = await copyToClipboard(text);
-      document.getElementById('exportHint').textContent = ok
-        ? 'Share not available here — copied to clipboard ✅'
-        : 'Could not share/copy. Best results in Safari.';
-      logEvent('share_session', ok ? 'Copied fallback' : 'Failed', { ok });
     }
 
     // --- Settings UI ---
@@ -1288,7 +1771,7 @@
       teamNames = generated;
       teamMap = map;
 
-      document.getElementById('teamsText').value = generated.join('\\n');
+      document.getElementById('teamsText').value = generated.join('\n');
       teamsMode = true;
       setTeamsUI();
       rebuildSystems(true);
@@ -1298,13 +1781,13 @@
     }
 
     function openSettings() {
-      document.getElementById('playersText').value = playerNames.join('\\n');
-      document.getElementById('teamsText').value = teamNames.join('\\n');
+      document.getElementById('playersText').value = playerNames.join('\n');
+      document.getElementById('teamsText').value = teamNames.join('\n');
       document.getElementById('teamsModeToggle').checked = teamsMode;
 
       document.getElementById('teamDisplayCombinedToggle').checked = teamRowShowsCombined;
 
-      document.getElementById('powerPlaysText').value = powerPlays.join('\\n');
+      document.getElementById('powerPlaysText').value = powerPlays.join('\n');
 
       document.getElementById('mainMinInput').value = mainMinMinutes;
       document.getElementById('mainMaxInput').value = mainMaxMinutes;
@@ -1389,22 +1872,6 @@
     document.getElementById('clearHistoryBtn').addEventListener('click', (e) => { e.stopPropagation(); clearHistory(); });
 
     document.getElementById('statsBtn').addEventListener('click', (e) => { e.stopPropagation(); openStats(); });
-
-    // Toggle leaderboard panels (cleaner middle layout)
-    let boardsVisible = true;
-    function setBoardsVisible(v){
-      boardsVisible = !!v;
-      document.body.classList.toggle('boards-hidden', !boardsVisible);
-      document.getElementById('boardsBtn').textContent = boardsVisible ? '🏆 Board' : '🏆 Show';
-    }
-    document.getElementById('boardsBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      setBoardsVisible(!boardsVisible);
-      addHistory(boardsVisible ? 'Leaderboard shown' : 'Leaderboard hidden');
-      logEvent('boards_toggle', boardsVisible ? 'shown' : 'hidden');
-      persistSoon();
-    });
-
     document.getElementById('statsCloseBtn').addEventListener('click', (e) => { e.stopPropagation(); closeStats(); });
     document.getElementById('statsResetCountsBtn').addEventListener('click', (e) => { e.stopPropagation(); resetCountsOnly(); });
 
@@ -1413,51 +1880,11 @@
       const text = buildSessionExportText();
       const ok = await copyToClipboard(text);
       document.getElementById('exportHint').textContent = ok
-        ? 'Copied to clipboard ✅ (paste into Messages / Notes)'
-        : 'Could not auto-copy. Best results in Safari.';
+        ? 'Copied to clipboard ✅ (paste it into Messages / Notes)'
+        : 'Could not auto-copy. Try running from Safari (not a file viewer), or I can add a “download .txt” button.';
       logEvent('export_session', ok ? 'Copied' : 'Copy failed', { ok });
       persistSoon();
     });
-
-    document.getElementById('shareSessionBtn').addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await shareSession();
-      persistSoon();
-    });
-
-    document.getElementById('wheelCloseTop').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (wheelSpinning) return;
-      setWheelVisible(false);
-      pendingPowerTarget = null;
-      pendingPowerAction = null;
-      logEvent('wheel_close', 'Close');
-      persistSoon();
-    });
-    document.getElementById('wheelCancelBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (wheelSpinning) return;
-      setWheelVisible(false);
-      pendingPowerTarget = null;
-      pendingPowerAction = null;
-      logEvent('wheel_cancel', 'Cancel');
-      persistSoon();
-    });
-    document.getElementById('wheelSpinBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      spinWheel();
-    });
-
-    
-    // Dev: trigger a power play immediately
-    const devBtn = document.getElementById('devPowerBtn');
-    if (devBtn){
-      devBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        triggerPowerPlay(false);
-        persistSoon();
-      });
-    }
 
     document.getElementById('settingsBtn').addEventListener('click', (e) => { e.stopPropagation(); openSettings(); });
     document.getElementById('settingsCancelBtn').addEventListener('click', (e) => { e.stopPropagation(); closeSettings(); });
@@ -1494,18 +1921,12 @@
 
       if (timerId) clearTimeout(timerId);
       if (powerTimerId) clearTimeout(powerTimerId);
-      timerId = null; powerTimerId = null; nextChangeTime = null;
-
-      lastWarnSecond = null;
+      timerId = null; powerTimerId = null; nextChangeTime = null; mainTenSecondSirenPlayed = false;
 
       if (countdownIntervalId) { clearInterval(countdownIntervalId); countdownIntervalId = null; }
 
       document.getElementById('pauseBtn').textContent = 'Pause';
       hidePowerPlay();
-      setWheelVisible(false);
-      wheelSpinning = false;
-      pendingPowerTarget = null;
-      pendingPowerAction = null;
 
       isRight = true; updateScreen();
       addHistory('Reset');
@@ -1529,7 +1950,14 @@
       persistSoon();
     });
 
-    // Double tap to flip hand (manual flip does NOT add to round count)
+    document.getElementById('devPowerBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!gameStarted) startGame();
+      if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
+      showPowerPlay(true);
+    });
+
+    // Double tap to flip hand
     document.body.addEventListener('click', () => {
       const now = Date.now();
       const delta = now - lastTapTime;
@@ -1618,13 +2046,9 @@
       if (saved.drinkCounts && typeof saved.drinkCounts === 'object') drinkCounts = saved.drinkCounts;
       if (saved.teamDrinkCounts && typeof saved.teamDrinkCounts === 'object') teamDrinkCounts = saved.teamDrinkCounts;
 
-      if (Number.isFinite(saved.roundCount)) roundCount = saved.roundCount;
-      if (saved.powerPlayTypeCounts && typeof saved.powerPlayTypeCounts === 'object') powerPlayTypeCounts = saved.powerPlayTypeCounts;
-
+      if (saved.icons && typeof saved.icons === 'object') icons = saved.icons;
       if (Number.isFinite(saved.sessionStartedAt)) sessionStartedAt = saved.sessionStartedAt;
       if (Array.isArray(saved.sessionEvents)) sessionEvents = saved.sessionEvents;
-
-      if (Number.isFinite(saved.wheelRotationDeg)) wheelRotationDeg = saved.wheelRotationDeg;
     }
 
     setDim(dimPercent);
@@ -1641,9 +2065,8 @@
     if (!powerCounts || typeof powerCounts !== 'object') powerCounts = {};
     for (const tgt of getPowerTargets()) if (!Number.isFinite(powerCounts[tgt])) powerCounts[tgt] = 0;
 
-    if (!powerPlayTypeCounts || typeof powerPlayTypeCounts !== 'object') powerPlayTypeCounts = {};
-
     if (!icons || typeof icons !== 'object') icons = {};
+
     if (teamsMode && (!teamMap || typeof teamMap !== 'object' || !Object.keys(teamMap).length)) {
       const map = {};
       const buckets = Array.from({length: teamNames.length || 1}, () => []);
@@ -1661,31 +2084,7 @@
     updateTimerText();
     addHistory('Ready');
 
-    // init wheel canvas after DOM loaded
-    initWheelCanvas();
-    updateWheelVisual();
- 
-    // ====== POWER PLAY (no wheel) ======
-    function pickRandomAction(){
-      const actions = (Array.isArray(powerPlays) && powerPlays.length) ? powerPlays : ['Finish your drink'];
-      return actions[Math.floor(Math.random() * actions.length)];
-    }
+    setInterval(() => persistSoon(), 5000);
+  </script>
 
-    function triggerPowerPlay(autoTriggered){
-      if (isPaused) return;
-      if (!gameStarted) startGame();
-      if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
-
-      const target = pickRandomTarget();
-      const action = pickRandomAction();
-
-      showPowerPlay(target, action);
-
-      addHistory(autoTriggered ? `Power play triggered (auto)` : `Power play triggered`);
-      logEvent('power_trigger', target, { target, action, auto: !!autoTriggered });
-      persistSoon();
-    }
-
- </script>
-</body>
-</html>
+</body></html>
