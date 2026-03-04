@@ -625,8 +625,7 @@
     <button id="historyBtn">📜 History</button>
     <button id="statsBtn">📊 Stats</button>
     <button id="boardsBtn">🏆 Board</button>
-    <button id="wheelBtn">🎡 Wheel</button>
-    <button id="rulesBtn">?</button>
+        <button id="rulesBtn">?</button>
     <button id="settingsBtn">⚙️</button>
     <button id="devPowerBtn">⚡ PP</button>
   </div>
@@ -659,35 +658,6 @@
 
     <div id="timerText">Tap START to begin</div>
     <div id="hintLine">Double-tap to flip hand</div>
-  </div>
-
-  <!-- CHALLENGE WHEEL -->
-  <div id="wheelOverlay" class="hidden">
-    <div class="wheelBox">
-      <div class="wheelTop">
-        <div class="wheelTopTitle">Challenge Wheel</div>
-        <div style="display:flex; gap:0.4rem;">
-          <button class="wheelBtn cancel" id="wheelCloseTop">Close</button>
-        </div>
-      </div>
-      <div class="wheelSub">Spins to pick the power play (player/team still chosen randomly)</div>
-
-      <div class="wheelStage">
-        <div class="wheelPointer"></div>
-
-        <div class="wheelWrap" id="wheelWrap" aria-label="Challenge wheel">
-          <canvas id="wheelCanvas" width="900" height="900"></canvas>
-          <div class="wheelCenter">SPIN</div>
-        </div>
-      </div>
-
-      <div class="wheelActions">
-        <button class="wheelBtn spin" id="wheelSpinBtn">SPIN</button>
-        <button class="wheelBtn cancel" id="wheelCancelBtn">Cancel</button>
-      </div>
-
-      <div class="wheelResult" id="wheelResult"></div>
-    </div>
   </div>
 
   <!-- POWER PLAY -->
@@ -1424,7 +1394,7 @@
       applyTeamsModeBodyClass();
       renderLeaderboard(null);
       refreshTeamBreakdownPanels();
-      updateWheelVisual();
+      
       persistSoon();
     }
 
@@ -1709,7 +1679,7 @@
     function openWheelForTarget(target, autoSpin){
       pendingPowerTarget = target;
       setWheelVisible(true);
-      updateWheelVisual();
+      
 
       if (autoSpin){
         setTimeout(() => spinWheel(), 250);
@@ -1748,7 +1718,7 @@
 
         setTimeout(() => {
           if (!pendingPowerTarget || !pendingPowerAction) return;
-          setWheelVisible(false);
+          
           showPowerPlay(pendingPowerTarget, pendingPowerAction);
           pendingPowerTarget = null;
           pendingPowerAction = null;
@@ -1756,7 +1726,29 @@
       }, 3900);
     }
 
-    // ====== POWER PLAY POPUP ======
+    
+    // ====== POWER PLAY (no wheel) ======
+    function pickRandomAction(){
+      const actions = (Array.isArray(powerPlays) && powerPlays.length) ? powerPlays : ['Finish your drink'];
+      return actions[Math.floor(Math.random() * actions.length)];
+    }
+
+    function triggerPowerPlay(autoTriggered){
+      if (isPaused) return;
+      if (!gameStarted) startGame();
+      if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
+
+      const target = pickRandomTarget();
+      const action = pickRandomAction();
+
+      showPowerPlay(target, action);
+
+      addHistory(autoTriggered ? `Power play triggered (auto)` : `Power play triggered`);
+      logEvent('power_trigger', target, { target, action, auto: !!autoTriggered });
+      persistSoon();
+    }
+
+// ====== POWER PLAY POPUP ======
     let powerTimerId = null;
 
     function schedulePowerPlay() {
@@ -1766,7 +1758,7 @@
       const minutes = powerMinMinutes + Math.random() * (powerMaxMinutes - powerMinMinutes);
       const ms = minutes * 60 * 1000;
 
-      powerTimerId = setTimeout(() => triggerPowerPlayViaWheel(true), ms);
+      powerTimerId = setTimeout(() => triggerPowerPlay(true), ms);
     }
 
     function pickPowerAccent(actionText){
@@ -2443,32 +2435,8 @@
       await shareSession();
       persistSoon();
     });
-
-    document.getElementById('wheelBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      triggerPowerPlayViaWheel(false);
+      triggerPowerPlay(false);
     });
-
-    document.getElementById('wheelCloseTop').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (wheelSpinning) return;
-      setWheelVisible(false);
-      pendingPowerTarget = null;
-      pendingPowerAction = null;
-      logEvent('wheel_close', 'Close');
-      persistSoon();
-    });
-    document.getElementById('wheelCancelBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (wheelSpinning) return;
-      setWheelVisible(false);
-      pendingPowerTarget = null;
-      pendingPowerAction = null;
-      logEvent('wheel_cancel', 'Cancel');
-      persistSoon();
-    });
-    document.getElementById('wheelSpinBtn').addEventListener('click', (e) => {
-      e.stopPropagation();
       spinWheel();
     });
 
@@ -2515,7 +2483,7 @@
 
       document.getElementById('pauseBtn').textContent = 'Pause';
       hidePowerPlay();
-      setWheelVisible(false);
+      
       wheelSpinning = false;
       pendingPowerTarget = null;
       pendingPowerAction = null;
@@ -2544,7 +2512,7 @@
 
     document.getElementById('devPowerBtn').addEventListener('click', (e) => {
       e.stopPropagation();
-      triggerPowerPlayViaWheel(false);
+      triggerPowerPlay(false);
     });
 
     // Double tap to flip hand (manual flip does NOT add to round count)
@@ -2680,8 +2648,8 @@
     addHistory('Ready');
 
     // init wheel canvas after DOM loaded
-    initWheelCanvas();
-    updateWheelVisual();
+    
+    
   </script>
 </body>
 </html>
