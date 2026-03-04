@@ -92,7 +92,13 @@
     #handEmoji{ font-size: calc(12vw * var(--ui-scale)); margin-bottom:0.5rem; position:relative; z-index:1; }
     #handText{ font-size: calc(7vw * var(--ui-scale)); font-weight:950; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.5rem; position:relative; z-index:1; }
     #drinkHint{ font-size: calc(4vw * var(--ui-scale)); opacity:0.92; position:relative; z-index:1; }
-    #timerText{ font-size: calc(4vw * var(--ui-scale)); opacity:0.85; margin-top:0.9rem; min-height:1.2em; text-shadow:0 0.2rem 0.7rem rgba(0,0,0,0.8); }
+    #timerText{
+      font-size: calc(4vw * var(--ui-scale));
+      opacity:0.9; margin-top:0.9rem; min-height:1.2em;
+      text-shadow:0 0.2rem 0.7rem rgba(0,0,0,0.8);
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
     #hintLine{ margin-top:0.35rem; font-size: calc(3vw * var(--ui-scale)); opacity:0.75; }
 
     @keyframes pulseGlow {
@@ -413,6 +419,111 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
+
+    /* Challenge Wheel */
+    #wheelOverlay{
+      position:fixed; inset:0; background:rgba(0,0,0,0.78);
+      display:flex; align-items:center; justify-content:center;
+      z-index:45;
+    }
+    #wheelOverlay.hidden{ display:none; }
+    .wheelBox{
+      background:#fff; color:#111827;
+      width:min(92vw, 720px);
+      border-radius:1.4rem;
+      box-shadow:0 1.5rem 3rem rgba(0,0,0,0.6);
+      padding: 1.2rem 1.2rem 1.1rem;
+      box-sizing:border-box;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+      border:3px solid rgba(0,0,0,0.08);
+    }
+    .wheelTop{
+      display:flex; align-items:center; justify-content:space-between; gap:0.6rem;
+      margin-bottom:0.7rem;
+    }
+    .wheelTopTitle{
+      font-weight:950; letter-spacing:0.12em; text-transform:uppercase;
+      font-size: calc(1.05rem * var(--ui-scale));
+    }
+    .wheelSub{
+      opacity:0.75; font-weight:800; font-size: calc(0.92rem * var(--ui-scale));
+      margin: 0.1rem 0 0.7rem;
+    }
+    .wheelStage{
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+      padding: 0.6rem 0 0.8rem;
+    }
+    .wheelPointer{
+      position:absolute;
+      top: 0.08rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 28px solid #111827;
+      filter: drop-shadow(0 0.35rem 0.6rem rgba(0,0,0,0.25));
+      z-index:3;
+    }
+
+    /* Animated canvas wheel */
+    .wheelWrap{
+      width: min(70vw, 420px);
+      height: min(70vw, 420px);
+      border-radius: 999px;
+      position:relative;
+      transform: rotate(0deg);
+      transition: transform 3.8s cubic-bezier(0.14, 0.94, 0.2, 1);
+      overflow:hidden;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.65), 0 1.2rem 2.4rem rgba(0,0,0,0.25);
+      border: 10px solid rgba(17,24,39,0.10);
+      background: #f3f4f6;
+    }
+    #wheelCanvas{
+      width:100%; height:100%;
+      display:block;
+    }
+
+    .wheelCenter{
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%);
+      width: 26%;
+      height: 26%;
+      border-radius: 999px;
+      background:#111827;
+      color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:950;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      box-shadow:0 0.8rem 1.4rem rgba(0,0,0,0.35);
+      border: 2px solid rgba(255,255,255,0.25);
+      pointer-events:none;
+      font-size: calc(0.8rem * var(--ui-scale));
+      z-index:2;
+    }
+
+    .wheelActions{ display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap; margin-top:0.7rem; }
+    .wheelBtn{
+      border:none; border-radius:999px; cursor:pointer;
+      padding:0.65rem 1.0rem;
+      font-weight:950;
+      box-shadow:0 0.55rem 1.3rem rgba(0,0,0,0.25);
+      font-size: calc(1.0rem * var(--ui-scale));
+    }
+    .wheelBtn.spin{ background:#16a34a; color:#fff; }
+    .wheelBtn.cancel{ background:#e5e7eb; color:#111827; }
+    .wheelResult{
+      margin-top: 0.6rem;
+      font-weight:950;
+      font-size: calc(1.05rem * var(--ui-scale));
+      min-height: 1.2em;
+      opacity:0.95;
+    }
   </style>
 </head>
 <body>
@@ -439,6 +550,7 @@
     <button id="wakeBtn">🔒 Awake</button>
     <button id="historyBtn">📜 History</button>
     <button id="statsBtn">📊 Stats</button>
+    <button id="wheelBtn">🎡 Wheel</button>
     <button id="rulesBtn">?</button>
     <button id="settingsBtn">⚙️</button>
     <button id="devPowerBtn">⚡ PP</button>
@@ -472,6 +584,35 @@
 
     <div id="timerText">Tap START to begin</div>
     <div id="hintLine">Double-tap to flip hand</div>
+  </div>
+
+  <!-- CHALLENGE WHEEL -->
+  <div id="wheelOverlay" class="hidden">
+    <div class="wheelBox">
+      <div class="wheelTop">
+        <div class="wheelTopTitle">Challenge Wheel</div>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="wheelBtn cancel" id="wheelCloseTop">Close</button>
+        </div>
+      </div>
+      <div class="wheelSub">Spins to pick the power play (player/team still chosen randomly)</div>
+
+      <div class="wheelStage">
+        <div class="wheelPointer"></div>
+
+        <div class="wheelWrap" id="wheelWrap" aria-label="Challenge wheel">
+          <canvas id="wheelCanvas" width="900" height="900"></canvas>
+          <div class="wheelCenter">SPIN</div>
+        </div>
+      </div>
+
+      <div class="wheelActions">
+        <button class="wheelBtn spin" id="wheelSpinBtn">SPIN</button>
+        <button class="wheelBtn cancel" id="wheelCancelBtn">Cancel</button>
+      </div>
+
+      <div class="wheelResult" id="wheelResult"></div>
+    </div>
   </div>
 
   <!-- POWER PLAY -->
@@ -549,7 +690,7 @@
 
       <label>Sound toggles</label>
       <div style="margin-top:0.2rem;">
-        <label style="font-weight:900;"><input type="checkbox" id="toggleMainSiren" checked> Main 10s siren</label>
+        <label style="font-weight:900;"><input type="checkbox" id="toggleMainSiren" checked> Main 10s warning sounds</label>
         <label style="font-weight:900;"><input type="checkbox" id="toggleEvilLaugh" checked> Evil laugh for zaps</label>
         <label style="font-weight:900;"><input type="checkbox" id="toggleApplause" checked> Applause on complete</label>
       </div>
@@ -571,8 +712,10 @@
     <div class="overlay-box">
       <h2>Rules</h2>
       <ul>
+        <li><strong>Hand Switch Warning:</strong> last 10 seconds shows a countdown + sounds.</li>
         <li>Use the <strong>+ / −</strong> buttons next to each player to track drinks.</li>
         <li><strong>Teams mode:</strong> team rows also have + / − (team drinks are separate from player drinks).</li>
+        <li><strong>Power plays:</strong> player/team is chosen randomly, but the <strong>wheel</strong> decides the challenge.</li>
       </ul>
       <div class="overlay-actions"><button class="btn-primary" id="rulesCloseBtn">Close</button></div>
     </div>
@@ -592,6 +735,10 @@
 
       <div id="statsCards" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem 1rem; margin-bottom:0.9rem;">
         <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
+          <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Rounds (auto switches)</div>
+          <div id="statsRounds" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
+        </div>
+        <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
           <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total player drinks</div>
           <div id="statsTotalPlayerDrinks" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
         </div>
@@ -603,10 +750,6 @@
           <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total power plays</div>
           <div id="statsTotalPp" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
         </div>
-        <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
-          <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total drinks (all)</div>
-          <div id="statsTotalAllDrinks" style="font-size:1.15rem; font-weight:950; margin-top:0.15rem;">0</div>
-        </div>
       </div>
 
       <div id="statsTeamsBlock" style="display:none; background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem; margin-bottom:0.9rem;"></div>
@@ -614,6 +757,11 @@
       <div id="statsLeaderboardBlock" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
         <div style="font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:0.4rem;">Players</div>
         <div id="statsPlayersList"></div>
+      </div>
+
+      <div id="ppTypeBlock" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem; margin-top:0.9rem;">
+        <div style="font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:0.4rem;">Power Plays by Type</div>
+        <div id="ppTypeList"></div>
       </div>
 
       <!-- Heatmap -->
@@ -629,7 +777,8 @@
       </div>
 
       <div class="overlay-actions" style="margin-top:1rem;">
-        <button class="btn-secondary" id="exportSessionBtn">Export session</button>
+        <button class="btn-secondary" id="shareSessionBtn">Share</button>
+        <button class="btn-secondary" id="exportSessionBtn">Copy summary</button>
         <button class="btn-danger" id="statsResetCountsBtn">Reset counts</button>
         <button class="btn-primary" id="statsCloseBtn">Close</button>
       </div>
@@ -641,7 +790,7 @@
   <div id="completeFlash">DONE!</div>
 
   <script>
-    const STORAGE_KEY = "buffaloGameSettings_v19_plusminus";
+    const STORAGE_KEY = "buffaloGameSettings_v21_canvasWheel";
 
     function loadSavedSettings() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
     function saveSettingsToStorage(obj) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {} }
@@ -672,8 +821,7 @@
     ];
 
     let isRight = true, darkMode = false;
-    let timerId = null, nextChangeTime = null, countdownIntervalId = null, mainTenSecondSirenPlayed = false;
-    let powerTimerId = null;
+    let timerId = null, nextChangeTime = null, countdownIntervalId = null;
     let audioCtx = null, audioUnlocked = false;
     let isPaused = false, gameStarted = false;
     let lastTapTime = 0;
@@ -682,6 +830,19 @@
     let drinkCounts = {};
     let teamDrinkCounts = {};
     let icons = {};
+
+    // New stats
+    let roundCount = 0; // auto hand switches
+    let powerPlayTypeCounts = {}; // action string -> count
+
+    // 10 second warning system
+    let lastWarnSecond = null;
+
+    // Wheel state
+    let wheelSpinning = false;
+    let wheelRotationDeg = 0;
+    let pendingPowerTarget = null;
+    let pendingPowerAction = null;
 
     // Session tracking for heatmap + export
     let sessionStartedAt = null;
@@ -695,8 +856,12 @@
     let historyAutoHideId = null;
 
     let wakeLock = null, keepAwakeEnabled = false;
-
     let persistTimer = null;
+
+    // Canvas wheel references
+    const WHEEL_PALETTE = ['#93c5fd','#86efac','#fca5a5','#fde68a','#c4b5fd','#fda4af','#67e8f9','#a7f3d0','#fecaca','#ddd6fe','#bae6fd','#bbf7d0'];
+    let wheelCanvas = null;
+    let wheelCtx = null;
 
     function escapeHtml(str) {
       return String(str)
@@ -707,7 +872,7 @@
         .replaceAll("'","&#039;");
     }
     function normalizeList(text) {
-      const lines = String(text || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const lines = String(text || "").split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
       const seen = new Set(), out = [];
       for (const n of lines) { const k = n.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(n); } }
       return out;
@@ -725,6 +890,12 @@
 
     function pad2(n){ return String(n).padStart(2,'0'); }
     function timestampNow() { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+    function fmtMMSS(sec){
+      const s = Math.max(0, Math.floor(sec));
+      const mm = Math.floor(s/60);
+      const ss = s%60;
+      return `${pad2(mm)}:${pad2(ss)}`;
+    }
 
     function logEvent(type, label = '', meta = null){
       const now = Date.now();
@@ -787,6 +958,21 @@
       }
       beep(660, 0, 0.35); beep(880, 0.25, 0.40); beep(1046, 0.55, 0.45);
     }
+
+    function playTick(){
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(980, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.6, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.14);
+    }
+
     function playPowerSound() {
       if (!audioCtx) return;
       const now = audioCtx.currentTime;
@@ -870,6 +1056,10 @@
         dot.style.background = '#a855f7';
         dot.style.boxShadow = '0 0 0.9rem rgba(168,85,247,0.95)';
         txt.textContent = 'POWER PLAY';
+      } else if (mode === 'WHEEL'){
+        dot.style.background = '#0ea5e9';
+        dot.style.boxShadow = '0 0 0.9rem rgba(14,165,233,0.95)';
+        txt.textContent = 'WHEEL';
       } else { txt.textContent = mode; }
     }
 
@@ -908,7 +1098,6 @@
     function buildPlayersByTeam(){
       const map = {};
       for (const t of teamNames) map[t] = Array.isArray(teamMap[t]) ? [...teamMap[t]] : [];
-
       const allAssigned = new Set(Object.values(map).flat().map(x => String(x)));
       const unassigned = playerNames.filter(p => !allAssigned.has(p));
       if (unassigned.length){
@@ -920,10 +1109,8 @@
 
     function getLeaderboardRowsGrouped() {
       if (!teamsMode) return playerNames.map(p => ({ type:'player', name:p, sub:false, team:null }));
-
       const byTeam = buildPlayersByTeam();
       const rows = [];
-
       for (const t of teamNames){
         rows.push({ type:'team', name:t, sub:false, team:t });
         const members = byTeam[t] || [];
@@ -954,16 +1141,117 @@
       if (el) el.innerHTML = renderTeamBreakdownHtml();
     }
 
+    function initWheelCanvas(){
+      wheelCanvas = document.getElementById('wheelCanvas');
+      if (!wheelCanvas) return;
+      wheelCtx = wheelCanvas.getContext('2d');
+      drawWheel();
+    }
+
+    function drawWheel(){
+      if (!wheelCanvas || !wheelCtx) return;
+
+      const ctx = wheelCtx;
+      const w = wheelCanvas.width;
+      const h = wheelCanvas.height;
+      const cx = w/2, cy = h/2;
+      const radius = Math.min(w,h) * 0.48;
+
+      ctx.clearRect(0,0,w,h);
+
+      // Outer rim subtle gradient ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx,cy,radius*1.04,0,Math.PI*2);
+      ctx.arc(cx,cy,radius*0.92,0,Math.PI*2,true);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(17,24,39,0.06)';
+      ctx.fill();
+      ctx.restore();
+
+      const n = Math.max(1, powerPlays.length);
+      const seg = (Math.PI*2)/n;
+      let start = -Math.PI/2; // start at top so pointer aligns nicely
+
+      // Segment drawing
+      for (let i=0;i<n;i++){
+        const end = start + seg;
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,radius,start,end);
+        ctx.closePath();
+        ctx.fillStyle = WHEEL_PALETTE[i % WHEEL_PALETTE.length];
+        ctx.fill();
+
+        // Segment border
+        ctx.strokeStyle = 'rgba(17,24,39,0.14)';
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        start = end;
+      }
+
+      // Inner highlight ring
+      ctx.beginPath();
+      ctx.arc(cx,cy,radius*0.86,0,Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 10;
+      ctx.stroke();
+
+      // Labels
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const maxChars = 18; // keep readable
+      const fontSize = Math.max(26, Math.floor(radius*0.085));
+      ctx.font = `950 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+
+      for (let i=0;i<n;i++){
+        const angle = (-Math.PI/2) + (i*seg) + (seg/2); // center
+        ctx.save();
+        ctx.rotate(angle);
+
+        // text shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        const label = String(powerPlays[i] || '').trim();
+        const shortLabel = label.length > maxChars ? (label.slice(0, maxChars-1) + '…') : label;
+
+        // draw on a radial line
+        ctx.translate(0, -radius*0.63);
+
+        // Outline effect
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        ctx.strokeText(shortLabel, 0, 0);
+
+        ctx.fillStyle = '#111827';
+        ctx.fillText(shortLabel, 0, 0);
+
+        ctx.restore();
+      }
+      ctx.restore();
+
+      // Small center dot (under the CSS center cap)
+      ctx.beginPath();
+      ctx.arc(cx,cy,radius*0.06,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(17,24,39,0.22)';
+      ctx.fill();
+    }
+
     function rebuildSystems(keepCounts = true) {
       const oldPower = keepCounts ? { ...powerCounts } : {};
       const oldDrinks = keepCounts ? { ...drinkCounts } : {};
       const oldTeamDrinks = keepCounts ? { ...teamDrinkCounts } : {};
       const oldIcons = keepCounts ? { ...icons } : {};
+      const oldPpTypes = keepCounts ? { ...powerPlayTypeCounts } : {};
 
       powerCounts = {};
       drinkCounts = {};
       teamDrinkCounts = {};
       icons = {};
+      powerPlayTypeCounts = oldPpTypes || {};
 
       let iconIndex = 0;
 
@@ -982,6 +1270,7 @@
       applyTeamsModeBodyClass();
       renderLeaderboard(null);
       refreshTeamBreakdownPanels();
+      updateWheelVisual();
       persistSoon();
     }
 
@@ -1011,9 +1300,8 @@
         let drinksTitle = 'Drinks';
         let ppDisplay = (powerCounts[name] || 0);
 
-        // +/- buttons only for players & teams (not Group)
         const canAdjust = (r.type === 'player') || (r.type === 'team');
-        const kind = r.type; // player/team/group
+        const kind = r.type;
 
         if (r.type === 'player'){
           drinksDisplay = (drinkCounts[name] || 0);
@@ -1166,19 +1454,34 @@
       if (!nextChangeTime) { t.textContent = 'Running'; handPanel.classList.remove('pulse'); setStatus('RUNNING'); return; }
 
       const diff = nextChangeTime - Date.now();
-      const totalSec = Math.max(0, Math.floor(diff / 1000));
+      const totalSec = Math.max(0, Math.ceil(diff / 1000));
 
-      if (totalSec > 0 && totalSec <= 10) handPanel.classList.add('pulse');
-      else handPanel.classList.remove('pulse');
+      // Visual warning + countdown in last 10 seconds
+      if (totalSec > 0 && totalSec <= 10) {
+        handPanel.classList.add('pulse');
+        t.textContent = `SWITCHING IN ${totalSec}s`;
 
-      if (enableMainTenSecondSiren && totalSec === 10 && !mainTenSecondSirenPlayed && audioUnlocked) {
-        mainTenSecondSirenPlayed = true;
-        playTenSecondSiren();
-        haptic([120, 60, 120]);
-        logEvent('main_10s_siren', 'Main 10s siren');
+        if (enableMainTenSecondSiren && audioUnlocked) {
+          // Siren at 10s, ticks 9..1
+          if (totalSec === 10 && lastWarnSecond !== 10) {
+            playTenSecondSiren();
+            haptic([120, 60, 120]);
+            logEvent('main_10s_siren', 'Main 10s siren');
+          } else if (totalSec < 10 && totalSec > 0 && lastWarnSecond !== totalSec) {
+            playTick();
+          }
+        }
+        lastWarnSecond = totalSec;
+      } else {
+        lastWarnSecond = null;
+        handPanel.classList.remove('pulse');
+        t.textContent = 'Running';
+        setStatus('RUNNING');
       }
-      t.textContent = 'Running';
-      setStatus('RUNNING');
+
+      if (totalSec <= 0) {
+        t.textContent = 'Switching...';
+      }
     }
 
     function scheduleRandomSwitch() {
@@ -1189,22 +1492,111 @@
       const ms = minutes * 60 * 1000;
 
       nextChangeTime = Date.now() + ms;
-      mainTenSecondSirenPlayed = false;
+      lastWarnSecond = null;
+
       updateTimerText();
       setStatus('RUNNING');
 
       timerId = setTimeout(() => {
         if (isPaused) return;
+
+        roundCount += 1;
+
         isRight = !isRight;
         updateScreen();
         if (audioUnlocked) playDing();
         haptic([60]);
+
         addHistory(`Auto hand switch → ${isRight ? 'RIGHT HAND' : 'LEFT HAND'}`);
-        logEvent('hand_auto', isRight ? 'RIGHT' : 'LEFT', { side: isRight ? 'RIGHT' : 'LEFT' });
+        logEvent('hand_auto', isRight ? 'RIGHT' : 'LEFT', { side: isRight ? 'RIGHT' : 'LEFT', roundCount });
+
         scheduleRandomSwitch();
         persistSoon();
       }, ms);
     }
+
+    // ====== WHEEL ======
+    function setWheelVisible(v){
+      document.getElementById('wheelOverlay').classList.toggle('hidden', !v);
+      if (v) setStatus('WHEEL');
+      else if (gameStarted && !isPaused) setStatus('RUNNING');
+    }
+
+    function updateWheelVisual(){
+      const wrap = document.getElementById('wheelWrap');
+      wrap.style.transform = `rotate(${wheelRotationDeg}deg)`;
+      drawWheel();
+      document.getElementById('wheelResult').textContent = '';
+    }
+
+    function pickRandomTarget(){
+      const targets = getPowerTargets();
+      return targets[Math.floor(Math.random() * targets.length)];
+    }
+
+    function computeWheelLanding(actionIndex){
+      const n = Math.max(1, powerPlays.length);
+      const segSize = 360 / n;
+      const segCenter = (actionIndex * segSize) + (segSize / 2);
+
+      const spins = 6 + Math.floor(Math.random() * 4); // 6-9 spins
+      // pointer is at top; we started wheel labels at top too.
+      // bring segCenter to 0 (top) by rotating -segCenter
+      return (spins * 360) - segCenter;
+    }
+
+    function openWheelForTarget(target, autoSpin){
+      pendingPowerTarget = target;
+      setWheelVisible(true);
+      updateWheelVisual();
+
+      if (autoSpin){
+        setTimeout(() => spinWheel(), 250);
+      }
+    }
+
+    function spinWheel(){
+      if (wheelSpinning) return;
+      if (!powerPlays.length){
+        document.getElementById('wheelResult').textContent = 'No power plays set.';
+        return;
+      }
+
+      wheelSpinning = true;
+      document.getElementById('wheelSpinBtn').disabled = true;
+
+      const n = powerPlays.length;
+      const actionIndex = Math.floor(Math.random() * n);
+      const action = powerPlays[actionIndex];
+
+      const landing = computeWheelLanding(actionIndex);
+      wheelRotationDeg = wheelRotationDeg + landing;
+
+      const wrap = document.getElementById('wheelWrap');
+      wrap.style.transform = `rotate(${wheelRotationDeg}deg)`;
+
+      if (audioUnlocked) playPowerSound();
+      haptic([80, 50, 80]);
+
+      setTimeout(() => {
+        wheelSpinning = false;
+        document.getElementById('wheelSpinBtn').disabled = false;
+
+        pendingPowerAction = action;
+        document.getElementById('wheelResult').textContent = `Selected: ${action}`;
+
+        setTimeout(() => {
+          if (!pendingPowerTarget || !pendingPowerAction) return;
+          setWheelVisible(false);
+          showPowerPlay(pendingPowerTarget, pendingPowerAction);
+          pendingPowerTarget = null;
+          pendingPowerAction = null;
+        }, 500);
+      }, 3900);
+    }
+
+    // ====== POWER PLAY POPUP ======
+    let powerTimerId = null;
 
     function schedulePowerPlay() {
       if (isPaused) return;
@@ -1213,7 +1605,7 @@
       const minutes = powerMinMinutes + Math.random() * (powerMaxMinutes - powerMinMinutes);
       const ms = minutes * 60 * 1000;
 
-      powerTimerId = setTimeout(showPowerPlay, ms);
+      powerTimerId = setTimeout(() => triggerPowerPlayViaWheel(true), ms);
     }
 
     function pickPowerAccent(actionText){
@@ -1239,12 +1631,8 @@
       }
     }
 
-    function showPowerPlay(force = false) {
-      if (isPaused && !force) return;
-
-      const targets = getPowerTargets();
-      const target = targets[Math.floor(Math.random() * targets.length)];
-      const action = (powerPlays && powerPlays.length) ? powerPlays[Math.floor(Math.random() * powerPlays.length)] : 'Finish your drink';
+    function showPowerPlay(target, action) {
+      if (isPaused) return;
 
       document.getElementById('powerName').textContent = target;
       document.getElementById('powerAction').textContent = action;
@@ -1255,6 +1643,8 @@
       document.getElementById('powerCompleteBtn').style.background = accent.button;
 
       powerCounts[target] = (powerCounts[target] || 0) + 1;
+      powerPlayTypeCounts[action] = (powerPlayTypeCounts[action] || 0) + 1;
+
       renderLeaderboard(null);
 
       document.getElementById('powerPlayOverlay').classList.remove('hidden');
@@ -1283,6 +1673,22 @@
       if (gameStarted && !isPaused) setStatus('RUNNING');
     }
 
+    function triggerPowerPlayViaWheel(autoSpin){
+      if (isPaused) return;
+      if (!gameStarted) startGame();
+
+      if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
+      if (!document.getElementById('wheelOverlay').classList.contains('hidden')) return;
+
+      const target = pickRandomTarget();
+      openWheelForTarget(target, !!autoSpin);
+
+      addHistory(autoSpin ? `Wheel power play triggered (auto)` : `Wheel power play triggered`);
+      logEvent('wheel_open', target, { target, auto: !!autoSpin });
+      persistSoon();
+    }
+
+    // ====== GAME FLOW ======
     function startGame() {
       if (!sessionStartedAt) {
         sessionStartedAt = Date.now();
@@ -1307,7 +1713,7 @@
 
       if (!timerId) {
         scheduleRandomSwitch();
-        if (!countdownIntervalId) countdownIntervalId = setInterval(updateTimerText, 1000);
+        if (!countdownIntervalId) countdownIntervalId = setInterval(updateTimerText, 250);
       }
       if (!powerTimerId) schedulePowerPlay();
       updateTimerText();
@@ -1348,8 +1754,11 @@
           dimPercent, hugeTextMode,
           devShowPowerButton,
           powerCounts, drinkCounts, teamDrinkCounts,
+          roundCount,
+          powerPlayTypeCounts,
           sessionStartedAt,
-          sessionEvents
+          sessionEvents,
+          wheelRotationDeg
         });
       }, 350);
     }
@@ -1381,7 +1790,6 @@
 
     function buildHeatmapBuckets(bucketMinutes = 5, maxBuckets = 96){
       if (!sessionStartedAt) return { buckets: [], max: 0 };
-
       const start = sessionStartedAt;
       const now = Date.now();
       const bucketMs = bucketMinutes * 60 * 1000;
@@ -1455,11 +1863,20 @@
       const powerTargets = getPowerTargets();
       const topPowerTarget = getTopEntry(powerCounts, powerTargets);
 
+      const topPpType = (() => {
+        const entries = Object.entries(powerPlayTypeCounts || {});
+        if (!entries.length) return { key: '—', val: 0 };
+        entries.sort((a,b) => (b[1]||0) - (a[1]||0));
+        return { key: entries[0][0], val: entries[0][1]||0 };
+      })();
+
       const totalEvents = sessionEvents.length;
 
       const cards = [
+        { k: 'Rounds', v: `${roundCount}` },
         { k: 'Top drinker', v: `${topPlayer.key} — ${topPlayer.val}` },
-        { k: 'Most power plays', v: `${topPowerTarget.key} — ${topPowerTarget.val}` },
+        { k: 'Most targeted', v: `${topPowerTarget.key} — ${topPowerTarget.val}` },
+        { k: 'Top power type', v: `${topPpType.key} — ${topPpType.val}` },
         { k: 'Top team drinks', v: `${topTeam.key} — ${topTeam.val}` },
         { k: 'Total events', v: `${totalEvents}` }
       ];
@@ -1472,12 +1889,33 @@
       `).join('');
     }
 
+    function renderPowerPlayTypes(){
+      const el = document.getElementById('ppTypeList');
+      const entries = Object.entries(powerPlayTypeCounts || {})
+        .map(([k,v]) => ({ k, v: Number(v)||0 }))
+        .sort((a,b) => (b.v - a.v) || a.k.localeCompare(b.k));
+
+      if (!entries.length){
+        el.innerHTML = `<div style="opacity:0.75;">No power plays yet</div>`;
+        return;
+      }
+
+      el.innerHTML = entries.map(e => `
+        <div style="display:flex; justify-content:space-between; gap:0.6rem; padding:0.35rem 0; border-bottom:1px dashed #e5e7eb;">
+          <div style="font-weight:950;">${escapeHtml(e.k)}</div>
+          <div style="font-weight:950; opacity:0.85;">${e.v}</div>
+        </div>
+      `).join('');
+    }
+
     function openStats(){
       const started = sessionStartedAt ? new Date(sessionStartedAt) : null;
       const duration = sessionStartedAt ? (Date.now() - sessionStartedAt) : 0;
       document.getElementById('statsTopNote').textContent = started
         ? `Started ${started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} • Duration ${formatDuration(duration)}`
         : 'Not started yet';
+
+      document.getElementById('statsRounds').textContent = String(roundCount);
 
       const tp = totalPlayerDrinks();
       const tt = totalTeamDrinks();
@@ -1486,7 +1924,6 @@
       document.getElementById('statsTotalPlayerDrinks').textContent = String(tp);
       document.getElementById('statsTotalTeamDrinks').textContent = String(tt);
       document.getElementById('statsTotalPp').textContent = String(tpp);
-      document.getElementById('statsTotalAllDrinks').textContent = String(tp + tt);
 
       renderMVP();
 
@@ -1528,6 +1965,7 @@
         </div>
       `).join('') || `<div style="opacity:0.75;">No players</div>`;
 
+      renderPowerPlayTypes();
       renderHeatmap();
       document.getElementById('exportHint').textContent = '';
 
@@ -1539,15 +1977,19 @@
       for (const p of playerNames) drinkCounts[p] = 0;
       for (const t of teamNames) teamDrinkCounts[t] = 0;
       for (const tgt of getPowerTargets()) powerCounts[tgt] = 0;
+      powerPlayTypeCounts = {};
+      roundCount = 0;
+
       sessionStartedAt = Date.now();
       sessionEvents = [];
       logEvent('counts_reset', 'Counts reset');
+
       addHistory('Counts reset');
       renderLeaderboard(null);
       persistSoon();
     }
 
-    // ---- Export session ----
+    // ---- Export / Share ----
     function buildSessionExportText(){
       const lines = [];
       const now = new Date();
@@ -1558,7 +2000,7 @@
 
       if (!sessionStartedAt){
         lines.push('No session has started yet.');
-        return lines.join('\n');
+        return lines.join('\\n');
       }
 
       const started = new Date(sessionStartedAt);
@@ -1566,8 +2008,8 @@
 
       lines.push(`Started: ${started.toLocaleString()}`);
       lines.push(`Duration: ${formatDuration(duration)}`);
+      lines.push(`Rounds (auto switches): ${roundCount}`);
       lines.push(`Teams mode: ${teamsMode ? 'ON' : 'OFF'}`);
-      lines.push(`Team row display: ${teamRowShowsCombined ? 'Combined (T+P)' : 'Team only (T)'}`);
       lines.push('');
 
       const tp = totalPlayerDrinks();
@@ -1577,16 +2019,13 @@
       lines.push(`Total player drinks: ${tp}`);
       lines.push(`Total team drinks: ${tt}`);
       lines.push(`Total power plays: ${tpp}`);
-      lines.push(`Total drinks (all): ${tp + tt}`);
       lines.push(`Total events logged: ${sessionEvents.length}`);
       lines.push('');
 
-      const topPlayer = getTopEntry(drinkCounts, playerNames);
-      const topTeam = getTopEntry(teamDrinkCounts, teamNames);
-      const topPowerTarget = getTopEntry(powerCounts, getPowerTargets());
-      lines.push(`MVP (drinks): ${topPlayer.key} — ${topPlayer.val}`);
-      lines.push(`Top power target: ${topPowerTarget.key} — ${topPowerTarget.val}`);
-      lines.push(`Top team drinks: ${topTeam.key} — ${topTeam.val}`);
+      lines.push('POWER PLAY TYPES');
+      const ppTypes = Object.entries(powerPlayTypeCounts || {}).sort((a,b) => (b[1]||0)-(a[1]||0));
+      if (!ppTypes.length) lines.push('- (none yet)');
+      else for (const [k,v] of ppTypes) lines.push(`- ${k}: ${v}`);
       lines.push('');
 
       lines.push('PLAYERS');
@@ -1612,16 +2051,7 @@
         lines.push('');
       }
 
-      lines.push('LAST EVENTS');
-      const last = sessionEvents.slice(-20);
-      for (const ev of last){
-        const t = new Date(ev.t);
-        const ts = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-        const label = ev.label ? ` • ${ev.label}` : '';
-        lines.push(`- ${ts} • ${ev.type}${label}`);
-      }
-
-      return lines.join('\n');
+      return lines.join('\\n');
     }
 
     async function copyToClipboard(text){
@@ -1646,6 +2076,28 @@
       } catch {
         return false;
       }
+    }
+
+    async function shareSession(){
+      const text = buildSessionExportText();
+      try{
+        if (navigator.share){
+          await navigator.share({ title: 'Buffalo Session Summary', text });
+          document.getElementById('exportHint').textContent = 'Shared ✅';
+          logEvent('share_session', 'Shared', { ok:true });
+          return;
+        }
+      } catch (e) {
+        document.getElementById('exportHint').textContent = 'Share cancelled.';
+        logEvent('share_session', 'Cancelled', { ok:false });
+        return;
+      }
+
+      const ok = await copyToClipboard(text);
+      document.getElementById('exportHint').textContent = ok
+        ? 'Share not available here — copied to clipboard ✅'
+        : 'Could not share/copy. Best results in Safari.';
+      logEvent('share_session', ok ? 'Copied fallback' : 'Failed', { ok });
     }
 
     // --- Settings UI ---
@@ -1694,7 +2146,7 @@
       teamNames = generated;
       teamMap = map;
 
-      document.getElementById('teamsText').value = generated.join('\n');
+      document.getElementById('teamsText').value = generated.join('\\n');
       teamsMode = true;
       setTeamsUI();
       rebuildSystems(true);
@@ -1704,13 +2156,13 @@
     }
 
     function openSettings() {
-      document.getElementById('playersText').value = playerNames.join('\n');
-      document.getElementById('teamsText').value = teamNames.join('\n');
+      document.getElementById('playersText').value = playerNames.join('\\n');
+      document.getElementById('teamsText').value = teamNames.join('\\n');
       document.getElementById('teamsModeToggle').checked = teamsMode;
 
       document.getElementById('teamDisplayCombinedToggle').checked = teamRowShowsCombined;
 
-      document.getElementById('powerPlaysText').value = powerPlays.join('\n');
+      document.getElementById('powerPlaysText').value = powerPlays.join('\\n');
 
       document.getElementById('mainMinInput').value = mainMinMinutes;
       document.getElementById('mainMaxInput').value = mainMaxMinutes;
@@ -1803,10 +2255,44 @@
       const text = buildSessionExportText();
       const ok = await copyToClipboard(text);
       document.getElementById('exportHint').textContent = ok
-        ? 'Copied to clipboard ✅ (paste it into Messages / Notes)'
-        : 'Could not auto-copy. Try running from Safari (not a file viewer), or I can add a “download .txt” button.';
+        ? 'Copied to clipboard ✅ (paste into Messages / Notes)'
+        : 'Could not auto-copy. Best results in Safari.';
       logEvent('export_session', ok ? 'Copied' : 'Copy failed', { ok });
       persistSoon();
+    });
+
+    document.getElementById('shareSessionBtn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await shareSession();
+      persistSoon();
+    });
+
+    document.getElementById('wheelBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerPowerPlayViaWheel(false);
+    });
+
+    document.getElementById('wheelCloseTop').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (wheelSpinning) return;
+      setWheelVisible(false);
+      pendingPowerTarget = null;
+      pendingPowerAction = null;
+      logEvent('wheel_close', 'Close');
+      persistSoon();
+    });
+    document.getElementById('wheelCancelBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (wheelSpinning) return;
+      setWheelVisible(false);
+      pendingPowerTarget = null;
+      pendingPowerAction = null;
+      logEvent('wheel_cancel', 'Cancel');
+      persistSoon();
+    });
+    document.getElementById('wheelSpinBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      spinWheel();
     });
 
     document.getElementById('settingsBtn').addEventListener('click', (e) => { e.stopPropagation(); openSettings(); });
@@ -1844,12 +2330,18 @@
 
       if (timerId) clearTimeout(timerId);
       if (powerTimerId) clearTimeout(powerTimerId);
-      timerId = null; powerTimerId = null; nextChangeTime = null; mainTenSecondSirenPlayed = false;
+      timerId = null; powerTimerId = null; nextChangeTime = null;
+
+      lastWarnSecond = null;
 
       if (countdownIntervalId) { clearInterval(countdownIntervalId); countdownIntervalId = null; }
 
       document.getElementById('pauseBtn').textContent = 'Pause';
       hidePowerPlay();
+      setWheelVisible(false);
+      wheelSpinning = false;
+      pendingPowerTarget = null;
+      pendingPowerAction = null;
 
       isRight = true; updateScreen();
       addHistory('Reset');
@@ -1875,12 +2367,10 @@
 
     document.getElementById('devPowerBtn').addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!gameStarted) startGame();
-      if (!document.getElementById('powerPlayOverlay').classList.contains('hidden')) return;
-      showPowerPlay(true);
+      triggerPowerPlayViaWheel(false);
     });
 
-    // Double tap to flip hand
+    // Double tap to flip hand (manual flip does NOT add to round count)
     document.body.addEventListener('click', () => {
       const now = Date.now();
       const delta = now - lastTapTime;
@@ -1969,9 +2459,13 @@
       if (saved.drinkCounts && typeof saved.drinkCounts === 'object') drinkCounts = saved.drinkCounts;
       if (saved.teamDrinkCounts && typeof saved.teamDrinkCounts === 'object') teamDrinkCounts = saved.teamDrinkCounts;
 
-      if (saved.icons && typeof saved.icons === 'object') icons = saved.icons;
+      if (Number.isFinite(saved.roundCount)) roundCount = saved.roundCount;
+      if (saved.powerPlayTypeCounts && typeof saved.powerPlayTypeCounts === 'object') powerPlayTypeCounts = saved.powerPlayTypeCounts;
+
       if (Number.isFinite(saved.sessionStartedAt)) sessionStartedAt = saved.sessionStartedAt;
       if (Array.isArray(saved.sessionEvents)) sessionEvents = saved.sessionEvents;
+
+      if (Number.isFinite(saved.wheelRotationDeg)) wheelRotationDeg = saved.wheelRotationDeg;
     }
 
     setDim(dimPercent);
@@ -1988,8 +2482,9 @@
     if (!powerCounts || typeof powerCounts !== 'object') powerCounts = {};
     for (const tgt of getPowerTargets()) if (!Number.isFinite(powerCounts[tgt])) powerCounts[tgt] = 0;
 
-    if (!icons || typeof icons !== 'object') icons = {};
+    if (!powerPlayTypeCounts || typeof powerPlayTypeCounts !== 'object') powerPlayTypeCounts = {};
 
+    if (!icons || typeof icons !== 'object') icons = {};
     if (teamsMode && (!teamMap || typeof teamMap !== 'object' || !Object.keys(teamMap).length)) {
       const map = {};
       const buckets = Array.from({length: teamNames.length || 1}, () => []);
@@ -2007,8 +2502,9 @@
     updateTimerText();
     addHistory('Ready');
 
-    setInterval(() => persistSoon(), 5000);
+    // init wheel canvas after DOM loaded
+    initWheelCanvas();
+    updateWheelVisual();
   </script>
 </body>
 </html>
-
