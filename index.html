@@ -294,6 +294,7 @@
     .btn-primary{ background:#2563eb; color:#f9fafb; }
     .btn-warn{ background:#f59e0b; color:#111827; }
     .btn-danger{ background:#ef4444; color:#fff; }
+    .btn-success{ background:#16a34a; color:#fff; }
 
     /* Power Play */
     #powerPlayOverlay{ position:fixed; inset:0; background:rgba(0,0,0,0.72); display:flex; align-items:center; justify-content:center; z-index:35; }
@@ -341,6 +342,47 @@
     body.power-flash{ animation: powerFlash 0.5s infinite; }
     body.player-glow { box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.07); }
     body.hugeText{ --ui-scale: 1.18; }
+
+    /* Heatmap */
+    .heatWrap{
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      border-radius:0.9rem;
+      padding:0.7rem 0.8rem;
+      margin-top:0.8rem;
+    }
+    .heatTitle{
+      font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85;
+      margin-bottom:0.35rem;
+      display:flex; justify-content:space-between; gap:0.6rem; flex-wrap:wrap;
+    }
+    #heatLegend{ font-size:0.85rem; opacity:0.8; font-weight:800; letter-spacing:0.04em; text-transform:none; }
+    #heatGrid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:6px;
+      margin-top:0.45rem;
+    }
+    .heatCell{
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      border:1px solid rgba(0,0,0,0.08);
+      background:#e5e7eb;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .heatCell .label{
+      position:absolute; inset:auto 6px 6px 6px;
+      font-size: 11px;
+      font-weight: 900;
+      opacity: 0.7;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+      pointer-events:none;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -514,6 +556,12 @@
       <h2>Stats (Running)</h2>
       <div id="statsTopNote" style="font-size:0.9rem; opacity:0.8; margin-bottom:0.7rem;"></div>
 
+      <!-- MVP -->
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem; margin-bottom:0.9rem;">
+        <div style="font-weight:950; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:0.4rem;">MVP</div>
+        <div id="mvpBlock" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 0.8rem;"></div>
+      </div>
+
       <div id="statsCards" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem 1rem; margin-bottom:0.9rem;">
         <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.9rem;padding:0.7rem 0.8rem;">
           <div style="font-size:0.8rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">Total player drinks</div>
@@ -540,21 +588,32 @@
         <div id="statsPlayersList"></div>
       </div>
 
+      <!-- Heatmap -->
+      <div class="heatWrap">
+        <div class="heatTitle">
+          <div>Heat Map</div>
+          <div id="heatLegend">Events per 5 minutes</div>
+        </div>
+        <div style="font-size:0.85rem; opacity:0.8; margin-bottom:0.35rem;">
+          The darker the square, the more chaos happened in that time window.
+        </div>
+        <div id="heatGrid"></div>
+      </div>
+
       <div class="overlay-actions" style="margin-top:1rem;">
+        <button class="btn-secondary" id="exportSessionBtn">Export session</button>
         <button class="btn-danger" id="statsResetCountsBtn">Reset counts</button>
         <button class="btn-primary" id="statsCloseBtn">Close</button>
       </div>
 
-      <div style="margin-top:0.7rem; font-size:0.85rem; opacity:0.75;">
-        Tip: Long-press a name to subtract 1.
-      </div>
+      <div id="exportHint" style="margin-top:0.6rem; font-size:0.85rem; opacity:0.75;"></div>
     </div>
   </div>
 
   <div id="completeFlash">DONE!</div>
 
   <script>
-    const STORAGE_KEY = "buffaloGameSettings_v17_teamTooltipHint";
+    const STORAGE_KEY = "buffaloGameSettings_v18_mvp_heat_export";
 
     function loadSavedSettings() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
     function saveSettingsToStorage(obj) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {} }
@@ -596,7 +655,10 @@
     let teamDrinkCounts = {};
     let icons = {};
 
+    // Session tracking for heatmap + export
     let sessionStartedAt = null;
+    let sessionEvents = []; // {t:number, type:string, label?:string, meta?:object}
+    const MAX_SESSION_EVENTS = 1500;
 
     const HISTORY_MAX = 10;
     let historyItems = [];
@@ -635,6 +697,13 @@
 
     function pad2(n){ return String(n).padStart(2,'0'); }
     function timestampNow() { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+
+    function logEvent(type, label = '', meta = null){
+      const now = Date.now();
+      sessionEvents.push({ t: now, type, label, meta: meta || undefined });
+      if (sessionEvents.length > MAX_SESSION_EVENTS) sessionEvents.shift();
+    }
+
     function addHistory(text) {
       historyItems.unshift({ time: timestampNow(), text });
       if (historyItems.length > HISTORY_MAX) historyItems.length = HISTORY_MAX;
@@ -662,7 +731,9 @@
       historyItems = [];
       renderHistory();
       addHistory('History cleared');
+      logEvent('history_cleared', 'History cleared');
       scheduleHistoryAutoHide();
+      persistSoon();
     }
 
     function initAudio() {
@@ -925,7 +996,6 @@
           drinksDisplay = teamRowShowsCombined ? (tDrinks + memberDrinks) : tDrinks;
           ppDisplay = (powerCounts[name] || 0);
 
-          // Tooltip hint on the DRINKS badge
           if (teamRowShowsCombined) {
             drinksTitle = `Team drinks: ${tDrinks} + Player drinks: ${memberDrinks} = ${tDrinks + memberDrinks} (T+P)`;
           } else {
@@ -951,7 +1021,6 @@
         const dataTeam = (r.type === 'team') ? `data-team="${escapeHtml(name)}"` : '';
         const nameExtraClass = (r.type === 'player' && r.sub) ? 'playerSubRow' : '';
 
-        // Tooltip for team name (members)
         let title = '';
         if ((r.type === 'team') && teamsMode){
           const members = (byTeam && byTeam[name]) ? byTeam[name] : [];
@@ -983,6 +1052,7 @@
       if (!player) return;
       drinkCounts[player] = (drinkCounts[player] || 0) + 1;
       addHistory(`Player drink +1 → ${player}`);
+      logEvent('drink_add', player, { who: player, delta: 1 });
       haptic([25]);
       renderLeaderboard(player);
       persistSoon();
@@ -991,6 +1061,7 @@
       if (!player) return;
       drinkCounts[player] = Math.max(0, (drinkCounts[player] || 0) - 1);
       addHistory(`Player drink -1 → ${player}`);
+      logEvent('drink_sub', player, { who: player, delta: -1 });
       haptic([45, 40, 45]);
       renderLeaderboard(player);
       persistSoon();
@@ -1000,6 +1071,7 @@
       if (!team) return;
       teamDrinkCounts[team] = (teamDrinkCounts[team] || 0) + 1;
       addHistory(`Team drink +1 → ${team}`);
+      logEvent('team_drink_add', team, { team, delta: 1 });
       haptic([30, 35, 30]);
       renderLeaderboard(team);
       persistSoon();
@@ -1008,6 +1080,7 @@
       if (!team) return;
       teamDrinkCounts[team] = Math.max(0, (teamDrinkCounts[team] || 0) - 1);
       addHistory(`Team drink -1 → ${team}`);
+      logEvent('team_drink_sub', team, { team, delta: -1 });
       haptic([60, 50, 60]);
       renderLeaderboard(team);
       persistSoon();
@@ -1099,6 +1172,7 @@
         mainTenSecondSirenPlayed = true;
         playTenSecondSiren();
         haptic([120, 60, 120]);
+        logEvent('main_10s_siren', 'Main 10s siren');
       }
       t.textContent = 'Running';
       setStatus('RUNNING');
@@ -1123,6 +1197,7 @@
         if (audioUnlocked) playDing();
         haptic([60]);
         addHistory(`Auto hand switch → ${isRight ? 'RIGHT HAND' : 'LEFT HAND'}`);
+        logEvent('hand_auto', isRight ? 'RIGHT' : 'LEFT', { side: isRight ? 'RIGHT' : 'LEFT' });
         scheduleRandomSwitch();
         persistSoon();
       }, ms);
@@ -1185,6 +1260,7 @@
       setStatus('POWER');
 
       addHistory(`POWER PLAY → ${target}: ${action}`);
+      logEvent('power_show', target, { target, action });
       spawnConfetti();
       haptic([200, 80, 200]);
 
@@ -1205,17 +1281,23 @@
     }
 
     function startGame() {
-      if (!sessionStartedAt) sessionStartedAt = Date.now();
+      if (!sessionStartedAt) {
+        sessionStartedAt = Date.now();
+        sessionEvents = [];
+        logEvent('session_start', 'Session start');
+      }
 
       if (!audioUnlocked) {
         initAudio();
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         audioUnlocked = true;
         addHistory('Audio unlocked');
+        logEvent('audio_unlocked', 'Audio unlocked');
       }
       if (!gameStarted) {
         gameStarted = true;
         addHistory('Game started');
+        logEvent('game_started', 'Game started');
         document.getElementById('startOverlay').classList.add('hidden');
         setStatus('RUNNING');
       }
@@ -1234,6 +1316,7 @@
       if (powerTimerId) { clearTimeout(powerTimerId); powerTimerId = null; }
       document.getElementById('pauseBtn').textContent = 'Resume';
       addHistory('Paused');
+      logEvent('paused', 'Paused');
       setStatus('PAUSED');
       updateTimerText();
       persistSoon();
@@ -1244,6 +1327,7 @@
       scheduleRandomSwitch();
       schedulePowerPlay();
       addHistory('Resumed');
+      logEvent('resumed', 'Resumed');
       setStatus('RUNNING');
       updateTimerText();
       persistSoon();
@@ -1261,18 +1345,138 @@
           dimPercent, hugeTextMode,
           devShowPowerButton,
           powerCounts, drinkCounts, teamDrinkCounts,
-          sessionStartedAt
+          sessionStartedAt,
+          sessionEvents
         });
       }, 350);
     }
 
+    // ---- Stats helpers ----
     function totalPlayerDrinks(){ return Object.values(drinkCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
     function totalTeamDrinks(){ return Object.values(teamDrinkCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
     function totalPowerPlays(){ return Object.values(powerCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
 
+    function getTopEntry(mapObj, keys){
+      let bestKey = null, bestVal = -Infinity;
+      for (const k of keys){
+        const v = Number(mapObj[k] || 0);
+        if (v > bestVal){ bestVal = v; bestKey = k; }
+      }
+      if (bestKey === null) return { key: '—', val: 0 };
+      return { key: bestKey, val: bestVal };
+    }
+
+    function formatDuration(ms){
+      const s = Math.max(0, Math.floor(ms/1000));
+      const hh = Math.floor(s/3600);
+      const mm = Math.floor((s%3600)/60);
+      const ss = s%60;
+      if (hh > 0) return `${hh}h ${mm}m ${ss}s`;
+      if (mm > 0) return `${mm}m ${ss}s`;
+      return `${ss}s`;
+    }
+
+    function buildHeatmapBuckets(bucketMinutes = 5, maxBuckets = 96){
+      if (!sessionStartedAt) return { buckets: [], max: 0 };
+
+      const start = sessionStartedAt;
+      const now = Date.now();
+      const bucketMs = bucketMinutes * 60 * 1000;
+
+      const bucketsNeeded = Math.min(maxBuckets, Math.max(1, Math.ceil((now - start) / bucketMs)));
+      const buckets = new Array(bucketsNeeded).fill(0);
+
+      for (const ev of sessionEvents){
+        if (!ev || !Number.isFinite(ev.t)) continue;
+        const idx = Math.floor((ev.t - start) / bucketMs);
+        if (idx >= 0 && idx < buckets.length) buckets[idx] += 1;
+      }
+      const max = Math.max(0, ...buckets);
+      return { buckets, max };
+    }
+
+    function renderHeatmap(){
+      const grid = document.getElementById('heatGrid');
+      grid.innerHTML = '';
+
+      const bucketMinutes = 5;
+      const { buckets, max } = buildHeatmapBuckets(bucketMinutes, 96);
+      document.getElementById('heatLegend').textContent = `Events per ${bucketMinutes} minutes`;
+
+      if (!sessionStartedAt){
+        grid.innerHTML = `<div style="grid-column: 1 / -1; opacity:0.75;">No session yet</div>`;
+        return;
+      }
+
+      // Force a consistent grid layout (12 columns)
+      const cells = buckets.length;
+      const cols = 12;
+      const rows = Math.ceil(cells / cols);
+      const totalCells = rows * cols;
+
+      function bgFor(count){
+        // 5 shades based on intensity
+        if (max <= 0) return '#e5e7eb';
+        const ratio = count / max;
+        if (ratio <= 0.05) return '#e5e7eb';
+        if (ratio <= 0.25) return '#cbd5e1';
+        if (ratio <= 0.50) return '#94a3b8';
+        if (ratio <= 0.75) return '#64748b';
+        return '#334155';
+      }
+
+      for (let i = 0; i < totalCells; i++){
+        const count = i < buckets.length ? buckets[i] : 0;
+        const cell = document.createElement('div');
+        cell.className = 'heatCell';
+        cell.style.background = bgFor(count);
+
+        const startMin = i * bucketMinutes;
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = i < buckets.length ? `${count}` : '';
+        cell.appendChild(label);
+
+        const startTime = new Date(sessionStartedAt + (startMin * 60 * 1000));
+        const endTime = new Date(sessionStartedAt + ((startMin + bucketMinutes) * 60 * 1000));
+        const title = `${startTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}–${endTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}: ${count} events`;
+        cell.title = title;
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderMVP(){
+      const el = document.getElementById('mvpBlock');
+      const topPlayer = getTopEntry(drinkCounts, playerNames);
+      const topTeam = getTopEntry(teamDrinkCounts, teamNames);
+
+      const powerTargets = getPowerTargets();
+      const topPowerTarget = getTopEntry(powerCounts, powerTargets);
+
+      const totalEvents = sessionEvents.length;
+
+      const cards = [
+        { k: 'Top drinker', v: `${topPlayer.key} — ${topPlayer.val}` },
+        { k: 'Most power plays', v: `${topPowerTarget.key} — ${topPowerTarget.val}` },
+        { k: 'Top team drinks', v: `${topTeam.key} — ${topTeam.val}` },
+        { k: 'Total events', v: `${totalEvents}` }
+      ];
+
+      el.innerHTML = cards.map(c => `
+        <div style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:0.85rem;padding:0.55rem 0.65rem;">
+          <div style="font-size:0.78rem; opacity:0.75; font-weight:950; letter-spacing:0.08em; text-transform:uppercase;">${escapeHtml(c.k)}</div>
+          <div style="font-size:1.05rem; font-weight:950; margin-top:0.15rem;">${escapeHtml(c.v)}</div>
+        </div>
+      `).join('');
+    }
+
     function openStats(){
       const started = sessionStartedAt ? new Date(sessionStartedAt) : null;
-      document.getElementById('statsTopNote').textContent = started ? `Started ${started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}` : 'Not started yet';
+      const duration = sessionStartedAt ? (Date.now() - sessionStartedAt) : 0;
+      document.getElementById('statsTopNote').textContent = started
+        ? `Started ${started.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} • Duration ${formatDuration(duration)}`
+        : 'Not started yet';
 
       const tp = totalPlayerDrinks();
       const tt = totalTeamDrinks();
@@ -1282,6 +1486,8 @@
       document.getElementById('statsTotalTeamDrinks').textContent = String(tt);
       document.getElementById('statsTotalPp').textContent = String(tpp);
       document.getElementById('statsTotalAllDrinks').textContent = String(tp + tt);
+
+      renderMVP();
 
       const teamsBlock = document.getElementById('statsTeamsBlock');
       if (teamsMode) {
@@ -1321,6 +1527,9 @@
         </div>
       `).join('') || `<div style="opacity:0.75;">No players</div>`;
 
+      renderHeatmap();
+      document.getElementById('exportHint').textContent = '';
+
       document.getElementById('statsOverlay').classList.remove('hidden');
     }
     function closeStats(){ document.getElementById('statsOverlay').classList.add('hidden'); }
@@ -1330,11 +1539,117 @@
       for (const t of teamNames) teamDrinkCounts[t] = 0;
       for (const tgt of getPowerTargets()) powerCounts[tgt] = 0;
       sessionStartedAt = Date.now();
+      sessionEvents = [];
+      logEvent('counts_reset', 'Counts reset');
       addHistory('Counts reset');
       renderLeaderboard(null);
       persistSoon();
     }
 
+    // ---- Export session ----
+    function buildSessionExportText(){
+      const lines = [];
+      const now = new Date();
+
+      lines.push('BUFFALO SESSION SUMMARY');
+      lines.push(`Exported: ${now.toLocaleString()}`);
+      lines.push('');
+
+      if (!sessionStartedAt){
+        lines.push('No session has started yet.');
+        return lines.join('\n');
+      }
+
+      const started = new Date(sessionStartedAt);
+      const duration = Date.now() - sessionStartedAt;
+
+      lines.push(`Started: ${started.toLocaleString()}`);
+      lines.push(`Duration: ${formatDuration(duration)}`);
+      lines.push(`Teams mode: ${teamsMode ? 'ON' : 'OFF'}`);
+      lines.push(`Team row display: ${teamRowShowsCombined ? 'Combined (T+P)' : 'Team only (T)'}`);
+      lines.push('');
+
+      const tp = totalPlayerDrinks();
+      const tt = totalTeamDrinks();
+      const tpp = totalPowerPlays();
+
+      lines.push(`Total player drinks: ${tp}`);
+      lines.push(`Total team drinks: ${tt}`);
+      lines.push(`Total power plays: ${tpp}`);
+      lines.push(`Total drinks (all): ${tp + tt}`);
+      lines.push(`Total events logged: ${sessionEvents.length}`);
+      lines.push('');
+
+      const topPlayer = getTopEntry(drinkCounts, playerNames);
+      const topTeam = getTopEntry(teamDrinkCounts, teamNames);
+      const topPowerTarget = getTopEntry(powerCounts, getPowerTargets());
+      lines.push(`MVP (drinks): ${topPlayer.key} — ${topPlayer.val}`);
+      lines.push(`Top power target: ${topPowerTarget.key} — ${topPowerTarget.val}`);
+      lines.push(`Top team drinks: ${topTeam.key} — ${topTeam.val}`);
+      lines.push('');
+
+      lines.push('PLAYERS');
+      const playersSorted = [...playerNames].sort((a,b) => (drinkCounts[b]||0) - (drinkCounts[a]||0) || a.localeCompare(b));
+      for (const p of playersSorted){
+        const d = drinkCounts[p] || 0;
+        const pp = powerCounts[p] || 0;
+        lines.push(`- ${p}: drinks ${d}${teamsMode ? '' : `, power plays ${pp}`}`);
+      }
+      lines.push('');
+
+      if (teamsMode){
+        lines.push('TEAMS');
+        const byTeam = buildPlayersByTeam();
+        for (const t of teamNames){
+          const td = teamDrinkCounts[t] || 0;
+          const tppc = powerCounts[t] || 0;
+          const members = byTeam[t] || [];
+          const memberDrinks = members.reduce((sum,p)=>sum + (drinkCounts[p]||0), 0);
+          lines.push(`- ${t}: team drinks ${td}, player drinks ${memberDrinks}, power plays ${tppc}`);
+          lines.push(`  members: ${members.join(', ') || '—'}`);
+        }
+        lines.push('');
+      }
+
+      // Include last 20 events (most recent)
+      lines.push('LAST EVENTS');
+      const last = sessionEvents.slice(-20);
+      for (const ev of last){
+        const t = new Date(ev.t);
+        const ts = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        const label = ev.label ? ` • ${ev.label}` : '';
+        lines.push(`- ${ts} • ${ev.type}${label}`);
+      }
+
+      return lines.join('\n');
+    }
+
+    async function copyToClipboard(text){
+      // Works on HTTPS; fallback works in most WebViews too.
+      try{
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch {}
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+      } catch {
+        return false;
+      }
+    }
+
+    // --- Settings UI ---
     function setTeamsUI() {
       document.getElementById('teamsModeToggle').checked = teamsMode;
       document.getElementById('teamsSection').style.display = teamsMode ? 'block' : 'none';
@@ -1385,6 +1700,7 @@
       setTeamsUI();
       rebuildSystems(true);
       addHistory(`Teams randomised (${nTeams})`);
+      logEvent('teams_randomised', `${nTeams} teams`, { nTeams });
       persistSoon();
     }
 
@@ -1459,6 +1775,7 @@
 
       rebuildSystems(true);
       addHistory('Settings saved');
+      logEvent('settings_saved', 'Settings saved');
 
       if (gameStarted && !isPaused) {
         if (timerId) { clearTimeout(timerId); timerId = null; }
@@ -1472,7 +1789,7 @@
       persistSoon();
     }
 
-    // UI events
+    // --- Buttons / UI events ---
     document.getElementById('startBtn').addEventListener('click', (e) => { e.stopPropagation(); startGame(); });
 
     document.getElementById('historyBtn').addEventListener('click', (e) => { e.stopPropagation(); setHistoryVisible(!historyVisible); if (historyVisible) scheduleHistoryAutoHide(); });
@@ -1481,6 +1798,17 @@
     document.getElementById('statsBtn').addEventListener('click', (e) => { e.stopPropagation(); openStats(); });
     document.getElementById('statsCloseBtn').addEventListener('click', (e) => { e.stopPropagation(); closeStats(); });
     document.getElementById('statsResetCountsBtn').addEventListener('click', (e) => { e.stopPropagation(); resetCountsOnly(); });
+
+    document.getElementById('exportSessionBtn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const text = buildSessionExportText();
+      const ok = await copyToClipboard(text);
+      document.getElementById('exportHint').textContent = ok
+        ? 'Copied to clipboard ✅ (paste it into Messages / Notes)'
+        : 'Could not auto-copy. Try running from Safari (not a file viewer), or I can add a “download .txt” button.';
+      logEvent('export_session', ok ? 'Copied' : 'Copy failed', { ok });
+      persistSoon();
+    });
 
     document.getElementById('settingsBtn').addEventListener('click', (e) => { e.stopPropagation(); openSettings(); });
     document.getElementById('settingsCancelBtn').addEventListener('click', (e) => { e.stopPropagation(); closeSettings(); });
@@ -1491,12 +1819,13 @@
       setTeamsUI();
       rebuildSystems(true);
       addHistory(teamsMode ? 'Teams mode ON' : 'Teams mode OFF');
+      logEvent('teams_mode', teamsMode ? 'ON' : 'OFF', { teamsMode });
       persistSoon();
     });
 
     document.getElementById('randomiseTeamsBtn').addEventListener('click', (e) => { e.stopPropagation(); makeRandomTeams(currentDesiredTeamCount); });
-    document.getElementById('set2TeamsBtn').addEventListener('click', (e) => { e.stopPropagation(); currentDesiredTeamCount = 2; addHistory('Team count set to 2'); });
-    document.getElementById('set3TeamsBtn').addEventListener('click', (e) => { e.stopPropagation(); currentDesiredTeamCount = 3; addHistory('Team count set to 3'); });
+    document.getElementById('set2TeamsBtn').addEventListener('click', (e) => { e.stopPropagation(); currentDesiredTeamCount = 2; addHistory('Team count set to 2'); logEvent('team_count', '2'); });
+    document.getElementById('set3TeamsBtn').addEventListener('click', (e) => { e.stopPropagation(); currentDesiredTeamCount = 3; addHistory('Team count set to 3'); logEvent('team_count', '3'); });
 
     document.getElementById('dimRange').addEventListener('input', (e) => { setDim(e.target.value); persistSoon(); });
     document.getElementById('hugeTextToggle').addEventListener('change', (e) => { setHugeText(e.target.checked); persistSoon(); });
@@ -1525,6 +1854,7 @@
 
       isRight = true; updateScreen();
       addHistory('Reset');
+      logEvent('reset', 'Reset pressed');
       document.getElementById('startOverlay').classList.remove('hidden');
       setStatus('READY');
       updateTimerText();
@@ -1533,10 +1863,13 @@
 
     document.getElementById('powerCompleteBtn').addEventListener('click', (e) => {
       e.stopPropagation();
+      const target = document.getElementById('powerName').textContent || '';
+      const action = document.getElementById('powerAction').textContent || '';
       if (audioUnlocked && enableApplause) playApplause();
       haptic([80]);
       showCompleteFlash();
       addHistory('Power play completed');
+      logEvent('power_complete', target, { target, action });
       hidePowerPlay();
       persistSoon();
     });
@@ -1561,6 +1894,7 @@
         if (audioUnlocked) playDing();
         haptic([40]);
         addHistory(`Manual hand flip → ${isRight ? 'RIGHT HAND' : 'LEFT HAND'}`);
+        logEvent('hand_manual', isRight ? 'RIGHT' : 'LEFT', { side: isRight ? 'RIGHT' : 'LEFT' });
         scheduleRandomSwitch();
         persistSoon();
       }
@@ -1572,6 +1906,7 @@
       darkMode = !darkMode;
       document.getElementById('darkModeBtn').textContent = darkMode ? '☀️ LIGHT' : '🌙 DARK';
       addHistory(darkMode ? 'Dark mode ON' : 'Dark mode OFF');
+      logEvent('dark_mode', darkMode ? 'ON' : 'OFF', { darkMode });
       applyBackground();
       persistSoon();
     });
@@ -1588,6 +1923,7 @@
         keepAwakeEnabled = true;
         document.getElementById('wakeBtn').textContent = '🔓 Awake ON';
         addHistory('Keep awake ON');
+        logEvent('awake_on', 'Awake ON');
       } catch { addHistory('Wake Lock failed'); }
     }
     async function disableWakeLock() {
@@ -1595,6 +1931,7 @@
       wakeLock = null; keepAwakeEnabled = false;
       document.getElementById('wakeBtn').textContent = '🔒 Awake';
       addHistory('Keep awake OFF');
+      logEvent('awake_off', 'Awake OFF');
     }
     async function toggleWakeLock() { if (keepAwakeEnabled) await disableWakeLock(); else await enableWakeLock(); }
     document.getElementById('wakeBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleWakeLock(); });
@@ -1602,7 +1939,7 @@
       if (document.visibilityState === 'visible' && keepAwakeEnabled && !wakeLock) await enableWakeLock();
     });
 
-    // Init
+    // ---- Init ----
     attachLeaderboardHandlers();
 
     const saved = loadSavedSettings();
@@ -1635,6 +1972,7 @@
 
       if (saved.icons && typeof saved.icons === 'object') icons = saved.icons;
       if (Number.isFinite(saved.sessionStartedAt)) sessionStartedAt = saved.sessionStartedAt;
+      if (Array.isArray(saved.sessionEvents)) sessionEvents = saved.sessionEvents;
     }
 
     setDim(dimPercent);
