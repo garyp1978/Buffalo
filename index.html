@@ -633,8 +633,8 @@ function renderLeaderboard() {
         const sortedTeams = [...teamNames].sort((a,b)=>{
           if (sortMode === 'alphabetical') return compareNames(a,b);
           if (sortMode === 'power') return (powerCounts[b]||0) - (powerCounts[a]||0) || compareNames(a,b);
-          const teamA = teamRowShowsCombined ? (teamDrinkCounts[a]||0) + (byTeam[a]||[]).reduce((s,p)=>s+(drinkCounts[p]||0),0) : (teamDrinkCounts[a]||0);
-          const teamB = teamRowShowsCombined ? (teamDrinkCounts[b]||0) + (byTeam[b]||[]).reduce((s,p)=>s+(drinkCounts[p]||0),0) : (teamDrinkCounts[b]||0);
+          const teamA = (byTeam[a]||[]).reduce((s,p)=>s+(drinkCounts[p]||0),0);
+          const teamB = (byTeam[b]||[]).reduce((s,p)=>s+(drinkCounts[p]||0),0);
           return teamB - teamA || compareNames(a,b);
         });
 
@@ -714,8 +714,7 @@ function attachLeaderboardHandlers(){
         const name = btn.getAttribute('data-name');
         if (action === 'minus') decrementDrink(name);
         else if (action === 'plus') incrementDrink(name);
-        else if (action === 'team-minus') decrementTeamDrink(name);
-        else if (action === 'team-plus') incrementTeamDrink(name);
+
       });
     }
 
@@ -831,7 +830,7 @@ function updateTimerText() {
     function persistSoon(){ if (persistTimer) return; persistTimer = setTimeout(() => { persistTimer = null; saveSettingsToStorage({ teamsMode, teamRowShowsCombined, playerNames, teamNames, teamMap, powerPlays, mainMinMinutes, mainMaxMinutes, powerMinMinutes, powerMaxMinutes, enableMainTenSecondSiren, enableEvilLaugh, enableApplause, dimPercent, hugeTextMode, devShowPowerButton, sortMode, voiceEnabled, bigScreenMode, themePreset, soundPack, powerCounts, drinkCounts, teamDrinkCounts, icons, sessionStartedAt, sessionEvents }); }, 350); }
 
     function totalPlayerDrinks(){ return Object.values(drinkCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
-    function totalTeamDrinks(){ return Object.values(teamDrinkCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
+    function totalTeamDrinks(){ if (!teamsMode) return 0; const byTeam = buildPlayersByTeam(); return teamNames.reduce((sum,t)=> sum + (byTeam[t]||[]).reduce((s,p)=>s+(Number(drinkCounts[p])||0),0), 0); }
     function totalPowerPlays(){ return Object.values(powerCounts || {}).reduce((a,b) => a + (Number(b)||0), 0); }
     function getTopEntry(mapObj, keys){ let bestKey = null, bestVal = -Infinity; for (const k of keys){ const v = Number(mapObj[k] || 0); if (v > bestVal){ bestVal = v; bestKey = k; } } if (bestKey === null) return { key: '—', val: 0 }; return { key: bestKey, val: bestVal }; }
     function formatDuration(ms){ const s = Math.max(0, Math.floor(ms/1000)); const hh = Math.floor(s/3600); const mm = Math.floor((s%3600)/60); const ss = s%60; if (hh > 0) return `${hh}h ${mm}m ${ss}s`; if (mm > 0) return `${mm}m ${ss}s`; return `${ss}s`; }
